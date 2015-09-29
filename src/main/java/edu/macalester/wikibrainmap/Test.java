@@ -12,6 +12,6 @@ import java.sql.SQLException;
  */
 public class Test {
     public static void main(String args[]) throws InterruptedException, IOException, DaoException, SQLException, ConfigurationException, ClassNotFoundException {
-        Loader.main(new String[] {"-l", "simple"});
+        Loader.main(new String[] {"-l", "simple", "-c", "wb-map.conf"});
     }
 }
