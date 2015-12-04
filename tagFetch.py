@@ -3,15 +3,15 @@ USERDATA = "usernames.txt"
 WRITETAGS = "tagfile.txt"
 THRESHOLD = 2
 
-# Open up an API client using a csv file for input
 def accessAPI(filename):
+	''' # Open up an API client using a csv file for input '''
 	info = open(filename, 'r')
 	key, secret, usr, password = info.read().split(",")
 	info.close()
 	return pytumblr.TumblrRestClient(key, secret, usr, password)
 
-# Holy nested loops batman! Update our fancy schmancy object dictionary
 def rudimentaryTagVector(iterations, allUsers ={}, usernames = []):
+	''' # Holy nested loops batman! Update our fancy schmancy object dictionary '''
 	printCount = 0
 	for usr in usernames:
 		count = 0
@@ -41,8 +41,8 @@ def rudimentaryTagVector(iterations, allUsers ={}, usernames = []):
 			print "Still working, not broken"
 	return allUsers 
 
-# Set up data priming in a way that allows adjustments for data resets or lack of usernames
 def primeData(noNames = False, resetTags = False):
+''' # Set up data priming in a way that allows adjustments for data resets or lack of usernames '''
 	if noNames:
 		usernames = []
 	else:

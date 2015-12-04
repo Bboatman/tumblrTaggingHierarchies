@@ -1,34 +1,40 @@
-import urllib, json, pytumblr, pickle, time
+import urllib
+import json
+import pytumblr
+import pickle
+import time
 USRFILE = 'usernames.txt'
 CLIENTFILE = 'data.txt'
-# Crawl trending page for starte blogs because tumblr api isn't written # to produce random blogs because they suck
-def getUrls(doPrint = False):
-	basePage = "https://www.tumblr.com/explore/trending"
-	keyWord = "\"dashboard_url\"" #Looking for the urls in the html
-	handle = urllib.urlopen(basePage)
-	html = handle.read()
-	blogList = []
 
-	for word in html.split(","): #Grab blogspecific url
+
+def getUrls(doPrint=False):
+    ''' Crawl trending page for starte blogs because tumblr api isn't
+    written to produce random blogs because they suck '''
+    basePage = "https://www.tumblr.com/explore/trending"
+    keyWord = "\"dashboard_url\""  # Looking for the urls in the html
+    handle = urllib.urlopen(basePage)
+    html = handle.read()
+    blogList = []
+    for word in html.split(","):  # Grab blogspecific url
 	    if word[:len(keyWord)] == keyWord:
 	        url = word.split("/")[-1][:-1]
 	        blogList.append(url)
+	        if doPrint:
+	        	for url in blogList:
+	        		print url
+    return blogList
 
-	if doPrint:
-		for url in blogList:
-		    print url
 
-	return blogList
-
-# Open up an API client using a csv file for input
 def accessAPI(filename):
+''' # Open up an API client using a csv file for input '''
 	info = open(filename, 'r')
 	key, secret, usr, password = info.read().split(",")
 	info.close()
 	return pytumblr.TumblrRestClient(key, secret, usr, password)
 
-# Generate a list of blogs 
+
 def makeBlogList(urlList, offset = 0):
+''' # Generate a list of blogs  '''
 	nameFile = open(USRFILE, 'r')
 	usernames = pickle.load(nameFile)
 	nameFile.close()
@@ -39,7 +45,7 @@ def makeBlogList(urlList, offset = 0):
 			rawPosts = client.posts(url, offset=offset)
 			allPosts = rawPosts['posts']
 			for post in allPosts:
-				if 'post_author' in post.keys(): # This one gets the original author if the poster reblogged the post
+				if 'post_author' in post.keys():  # This one gets the original author if the poster reblogged the post
 					name = item['post_author'].encode('utf-8')
 					if name not in current:
 						usernames.append(name)
@@ -60,12 +66,14 @@ def makeBlogList(urlList, offset = 0):
 	nameFile.close()
 	return sumAdded
 
-# Throw out defunct blogs and blogs with less than 20 posts
+
 def cleanList():
+''' # Throw out defunct blogs and blogs with less than 20 posts '''
 	userfile = open(USRFILE, 'r')
 	usernames = pickle.load(userfile)
 	userfile = userfile.close()
 	makeBlogList(usernames) 
+
 
 def main():
 	runtime = 300
@@ -79,4 +87,4 @@ def main():
 
 
 client = accessAPI(CLIENTFILE)
-updateUserList()
+main()
