@@ -4,8 +4,10 @@ CLIENTFILE = 'data.txt'
 
 
 def getUrls():
-    ''' Crawl trending page for starte blogs because tumblr api isn't
-    written to produce random blogs because they suck '''
+    ''' 
+    Crawl trending page for starter blogs because tumblr api isn't
+    written to produce random blogs because they suck (but we still love them anyways)
+    '''
     basePage = "https://www.tumblr.com/explore/trending"
     keyWord = "\"dashboard_url\""  # Looking for the urls in the html
     handle = urllib.urlopen(basePage)
@@ -19,7 +21,11 @@ def getUrls():
 
 
 def accessAPI(filename):
-	''' # Open up an API client using a csv file for input '''
+	''' 
+	Open up an API client without directly needing to input credentials
+	so I can share my code
+	Param: filename - the .txt file that contains the api credentials
+	'''
 	info = open(filename, 'r')
 	key, secret, usr, password = info.read().split(",")
 	info.close()
@@ -27,7 +33,14 @@ def accessAPI(filename):
 
 
 def makeBlogList(urlList, offset = 0):
-	''' # Generate a list of blogs  '''
+	''' 
+	Generate a list of blogs usernames for later processing 
+	Param: urlList - if a list of blogs to be added to the USRFILE
+		   offset - number of pages to troll through looking for posts 
+		   			they've reblogged to get more usernames 
+	TODO: may not actually be worth it computationally to look for reblogs, 
+		  need to look into marginal benifit
+	'''
 	nameFile = open(USRFILE, 'r')
 	usernames = pickle.load(nameFile)
 	nameFile.close()
@@ -61,7 +74,10 @@ def makeBlogList(urlList, offset = 0):
 
 
 def cleanList():
-	''' # Throw out defunct blogs and blogs with less than 20 posts '''
+	''' 
+	Run through complete list without offset to throw out defunct blogs 
+	blogs with less than 20 posts or anything else that throws warnings
+	'''
 	userfile = open(USRFILE, 'r')
 	usernames = pickle.load(userfile)
 	userfile = userfile.close()
