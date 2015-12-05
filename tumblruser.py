@@ -2,7 +2,7 @@ import collections
 class User:
 	def __init__(self, username):
 		self.userId = username
-		self.tagDict =  collections.defaultdict(list)
+		self.tagDict =  {}
 		self.posts = []
 
 	def __cmp__ (self, x):
@@ -24,8 +24,11 @@ class User:
 		for x in range(len(tagList)): # When you're popping things off lists, it gets weird, this prevents that
 			tag = tagList[0].encode('utf-8')
 			if tag in newList: # Get the list of all tags that have cooccured with the tag we just got, add it to the dict
+				if tag not in self.tagDict:
+					self.tagDict[tag] = collections.Counter()
 				newList.remove(tag)
-				self.tagDict[tag] += newList
+				for word in newList:
+					self.tagDict[tag][word] += 1
 				newList.append(tag)
 		self.posts.append(str(tumblrPost['id']))
 		

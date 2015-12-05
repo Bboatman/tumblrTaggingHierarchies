@@ -1,7 +1,8 @@
 import pytumblr, collections, pickle, tumblruser, warnings
 USERDATA = "usernames.txt"
-WRITETAGS = "tagfile.txt"
+WRITETAGS = "ObjectTest.txt"
 THRESHOLD = 2
+
 
 def accessAPI(filename):
 	''' # Open up an API client using a csv file for input '''
@@ -10,7 +11,8 @@ def accessAPI(filename):
 	info.close()
 	return pytumblr.TumblrRestClient(key, secret, usr, password)
 
-def rudimentaryTagVector(iterations, allUsers ={}, usernames = []):
+
+def collectUserTags(iterations, allUsers ={}, usernames = []):
 	''' # Holy nested loops batman! Update our fancy schmancy object dictionary '''
 	printCount = 0
 	for usr in usernames:
@@ -28,21 +30,25 @@ def rudimentaryTagVector(iterations, allUsers ={}, usernames = []):
 						if len(post['tags']) > 2:  #Ignore posts that don't have at least two tags
 							allUsers[usr].addPost(post)
 							count += 1
-							printCount += 1
+					if  len(objectPosts) < 100: #If it's full, just skip it.
+						break
+					printCount += 1
 				offset += 20
 			except: # Note the exception in case of error in reading in posts
 				warnstring = "User", usr, "threw an exception"
 				warnings.warn(warnstring, RuntimeWarning, stacklevel=2)
-		# If a user gets update, print the update
+		# If a user gets updated, print the update
 		if count > 0:
 			print allUsers[usr]
 		# Keep me from getting all neurotic
-		if printCount % 200 == 0:
+		if printCount > 400:
 			print "Still working, not broken"
+			printCount = 0
 	return allUsers 
 
+
 def primeData(noNames = False, resetTags = False):
-''' # Set up data priming in a way that allows adjustments for data resets or lack of usernames '''
+	'''Set up data priming in a way that allows adjustments for data resets or lack of usernames '''
 	if noNames:
 		usernames = []
 	else:
@@ -58,9 +64,11 @@ def primeData(noNames = False, resetTags = False):
 		tagFile.close
 	return userDict, usernames
 
+
 def main():
 	userDict, usernames = primeData()
-	objectDictionary = rudimentaryTagVector(5, userDict, usernames)
+	objectDictionary = collectUserTags(5, userDict, usernames)
+
 	
 	# Save to file for later
 	tagFile = open(WRITETAGS, 'w')

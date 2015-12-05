@@ -1,8 +1,4 @@
-import urllib
-import json
-import pytumblr
-import pickle
-import time
+import urllib, json, pytumblr, pickle, time
 USRFILE = 'usernames.txt'
 CLIENTFILE = 'data.txt'
 
@@ -26,7 +22,7 @@ def getUrls(doPrint=False):
 
 
 def accessAPI(filename):
-''' # Open up an API client using a csv file for input '''
+	''' # Open up an API client using a csv file for input '''
 	info = open(filename, 'r')
 	key, secret, usr, password = info.read().split(",")
 	info.close()
@@ -34,7 +30,7 @@ def accessAPI(filename):
 
 
 def makeBlogList(urlList, offset = 0):
-''' # Generate a list of blogs  '''
+	''' # Generate a list of blogs  '''
 	nameFile = open(USRFILE, 'r')
 	usernames = pickle.load(nameFile)
 	nameFile.close()
@@ -68,7 +64,7 @@ def makeBlogList(urlList, offset = 0):
 
 
 def cleanList():
-''' # Throw out defunct blogs and blogs with less than 20 posts '''
+	''' # Throw out defunct blogs and blogs with less than 20 posts '''
 	userfile = open(USRFILE, 'r')
 	usernames = pickle.load(userfile)
 	userfile = userfile.close()
