@@ -5,7 +5,10 @@ THRESHOLD = 2
 POST_LIM = 100
 
 def accessAPI(filename):
-	''' # Open up an API client using a csv file for input '''
+	''' 
+	Open up an API client using a csv file for input 
+	Param: filename - the .txt file that contains the api keys
+	'''
 	info = open(filename, 'r')
 	key, secret, usr, password = info.read().split(",")
 	info.close()
@@ -13,7 +16,13 @@ def accessAPI(filename):
 
 
 def collectUserTags(iterations, allUsers = {}, usernames = []):
-	''' # Holy nested loops batman! Update our fancy schmancy object dictionary '''
+	''' 
+	Holy nested loops batman! Aadd unseen posts to user object 
+	Param: iterations - the number of pages (each conatining 20 posts) to look through
+		   allUsers - the tumblruser object dictionary being updated
+		   usernames - the list of usernames to be processed
+    Return: allUsers - an updated tumblruser object dictionary
+	'''
 	printCount = 0
 	for usr in usernames:
 		count = 0
@@ -51,8 +60,16 @@ def collectUserTags(iterations, allUsers = {}, usernames = []):
 	return allUsers 
 
 
-def primeData(noNames = False, resetTags = False):
-	'''Set up data priming in a way that allows adjustments for data resets or lack of usernames '''
+def primeData(noNames = False, noTags = False):
+	'''
+	Set up data priming in a way that allows adjustments for data resets or lack of usernames 
+	Param: noNames - boolean value indicating if there exists a file of usernames available for usernames
+		   noTags - boolean value indicating if a file of tumblruser objects exists to be updated
+		   			   this is good for reseting tags if the data set somehow gets mucked up
+	Return: userDict - a dictionary of user objects 
+			usernames - a list of usernames
+	'''
+
 	if noNames:
 		usernames = []
 	else:
@@ -60,7 +77,7 @@ def primeData(noNames = False, resetTags = False):
 		usernames = pickle.load(userFile)
 		userFile.close()
 
-	if resetTags:
+	if noTags:
 		userDict = {}
 	else:
 		tagFile = open(WRITETAGS, 'r')
