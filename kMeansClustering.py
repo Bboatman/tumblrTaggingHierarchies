@@ -9,7 +9,8 @@ POST_THRESH = 50
 
 def shrinkDict(postThreshold = POST_THRESH, tagThreshold = TAG_THRESH):
     '''
-    Throw away all blogs with less than a certain number of tags and/or posts attached to them
+    Throw away all blogs with less than a certain number of tags and/or posts attached to them. 
+    This prevents big corporate blogs and professional bloggers from overwhelming the results
     Param: minThreshold - the minimum number of tags a url must have
             rawDict - the intial dictionary of urls and their tags made by makeDict
     Return: returnDict - dictionary of dicts counting frequency of tag occurance
@@ -25,20 +26,47 @@ def shrinkDict(postThreshold = POST_THRESH, tagThreshold = TAG_THRESH):
                 and len(usrObj.tagDict.keys()) <= (5 * TAG_THRESH)}
     return userDict
 
-shrinkTest = shrinkDict()
-print len(shrinkTest.keys())
+userDict = shrinkDict()
+for user in userDict:
+    tags = userDict[user]
+    for tag in tags:
+        collector = tags[tag]
+        print collector
+        break
 
-def randomClusters(numClusters):
+
+def generateTagVectors(userDict):
+    ''' 
+    Generate tag vectors for cosine similarity analysis
+    Param: userDict - a dictionary of tumblruser objects
+    Return: vectorDict - a dictionary of tag vectors with tags as keys and counters as values
+    '''
+    vectorDict = {}
+    for user in userDict:
+        usrObj = userDict[user]
+        for tag in usrObj.tagDict:
+            if tag not in vectorDict:
+                vectorDict[tag] = c.Counter()
+            vectorDict[tag] += usrObj.tagDict[tag]
+    return vectorDict
+
+'''
+vectorDict = generateTagVectors(shrinkDict())
+for item in vectorDict:
+    print vectorDict[item]
+    break '''
+
+def randomCluster(numClusters):
     '''
     Set up for recursive clustering, randomly distributing urls across n clusters
     Param: numClusters - the number of clusters to randomly distribute links across
     Return: clusteredUrls - a list of n lists containing a random distribution of tuples where the first item is a url
                             and the second is a default dictionary where key=tag value = frequency of occurance
     '''
-    clusteredUrls = [[] for x in xrange(numClusters)] # Courtesy of user 279627, Stack Overflow
-    for entry in URL_DICT:
+    clusteredUser = [[] for x in xrange(numClusters)] # Courtesy of user 279627, Stack Overflow
+    for entry in TAG_DICT:
         loc = random.randint(0, numClusters - 1)
-        clusteredUrls[loc].append((entry, URL_DICT[entry]))
+        clusteredUrls[loc].append((entry, TAG_DICT[entry]))
     return clusteredUrls
 
 
@@ -50,11 +78,11 @@ def evenClusters(numClusters):
                             and the second is a default dictionary where key=tag value = frequency of occurance
     '''
     clusteredUrls = [[] for x in xrange(numClusters)] 
-    divided = len(URL_DICT) / numClusters
+    divided = len(TAG_DICT) / numClusters
     loc = 0
     step = 0
-    for entry in URL_DICT:
-        clusteredUrls[loc].append((entry, URL_DICT[entry]))
+    for entry in TAG_DICT:
+        clusteredUrls[loc].append((entry, TAG_DICT[entry]))
         step += 1
         if step >= divided:
             loc += 1
@@ -125,15 +153,15 @@ def reCluster(centroidList, numClusters):
     iterCount = 0
     avg = 0
     newClusters = [[] for x in xrange(numClusters)] 
-    for url in URL_DICT:
-        similaritiesList = clusterMatch(centroidList, URL_DICT[url], NUM_CLUSTERS)
+    for url in TAG_DICT:
+        similaritiesList = clusterMatch(centroidList, TAG_DICT[url], NUM_CLUSTERS)
         avg += similaritiesList[0][1]
         iterCount +=1
         if similaritiesList[0][1] == 0:
             newIndex = random.randint(0, numClusters-1)
         else:
             newIndex = similaritiesList[0][0]
-        newClusters[newIndex].append((url, URL_DICT[url]))
+        newClusters[newIndex].append((url, TAG_DICT[url]))
     avg = avg/iterCount
     return newClusters, avg
 
@@ -241,7 +269,7 @@ def mergingTest():
     return clusters, centroidList
     
 '''
-URL_DICT = processUrls() # Dictionary of urls and their tags, and individual frequency of occurance
+TAG_DICT = processUrls() # Dictionary of urls and their tags, and individual frequency of occurance
 sortedClusters, centroidList = solve()
 printBestItems(sortedClusters, centroidList)
 clusters, centroidList = mergingTest()

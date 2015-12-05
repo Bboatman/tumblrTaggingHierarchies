@@ -3,7 +3,7 @@ USRFILE = 'usernames.txt'
 CLIENTFILE = 'data.txt'
 
 
-def getUrls(doPrint=False):
+def getUrls():
     ''' Crawl trending page for starte blogs because tumblr api isn't
     written to produce random blogs because they suck '''
     basePage = "https://www.tumblr.com/explore/trending"
@@ -15,9 +15,6 @@ def getUrls(doPrint=False):
 	    if word[:len(keyWord)] == keyWord:
 	        url = word.split("/")[-1][:-1]
 	        blogList.append(url)
-	        if doPrint:
-	        	for url in blogList:
-	        		print url
     return blogList
 
 
@@ -55,7 +52,7 @@ def makeBlogList(urlList, offset = 0):
 				usernames.remove(url)
 				print "Removed user", url
 				
-	# Save it all to file
+	# Save it all to file and visually show change
 	nameFile = open(USRFILE, 'w')
 	pickle.dump(usernames, nameFile)
 	print "End length", len(usernames)
@@ -72,7 +69,7 @@ def cleanList():
 
 
 def main():
-	runtime = 300
+	runtime = 300 # 5 minutes in seconds
 	now = time.time()
 	breaktime = now + runtime # Don't let it run for more than five minutes for sanity's sake
 	added = 1
