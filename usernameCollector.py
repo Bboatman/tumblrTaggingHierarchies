@@ -85,12 +85,12 @@ def cleanList():
 
 
 def main():
-	runtime = 40 
+	runtime = 300
 	sampleRate = 10
 	now = time.time()
 	breaktime = now + runtime # Don't let it run for more than five minutes for sanity's sake
 	added = 1
-	sampleTime = 10 + now
+	sampleTime = 20 + now
 	while time.time() < breaktime:
 		now = time.time()
 		if now > sampleTime:

@@ -55,9 +55,11 @@ class TagVector(object):
 	def __str__(self):
 		return self.tagName
 
+
 	def updateVector(self, tagCollection):
 		""" Update a vector with a new collection of data """
 		self.tagCount += tagCollection
+
 
 	def getName(self):
 		return self.tagName
@@ -67,12 +69,15 @@ class TagVector(object):
 		self.tagName = name
 	
 
+	def getTagCounter(self):
+		return self.tagCount
+
 class TagCluster(object):
 	""" Cluster for hierarchical ranking of tag vectors"""
 	def __init__(self):
 		self.memberList = []
 		self.rawVector = collections.Counter()
-		self.centroid = collections.defaultdict(float)
+		self.centroid = collections.Counter()
 
 
 	def __str__(self):
@@ -84,16 +89,31 @@ class TagCluster(object):
 
 
 	def wipeMembers(self):
+		self.setCentroid()
 		self.memberList = []
 		self.rawVector = collections.Counter()
 
 
 	def addMember(self, tagVector):
 		self.memberList.append(tagVector.getName())
-		self.rawVector += tagVector.tagCount
+		self.rawVector += tagVector.getTagCounter()
+		
+
+	def getMembers(self):
+		return self.memberList
+
+	def getCentroid(self):
+		if len(self.memberList) > 0:
+			self.setCentroid()
+		return self.centroid
+
+	def setCentroid(self):
+		centroidCounter = collections.Counter()
 		frac = float(len(self.memberList))
 		for tag in self.rawVector:
-			self.centroid[tag] = float(self.rawVector[tag]) / frac
+			centroidCounter[tag] = float(self.rawVector[tag]) / frac
+		return centroidCounter
+
 
 		
 

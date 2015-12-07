@@ -3,7 +3,7 @@ TAGFILE = "tagfile.txt"
 NUM_RESORTS = 10
 NUM_CLUSTERS = 5
 STEP_SIZE = 3
-POST_THRESH = 50
+POST_THRESH = 80
 
 
 def shrinkDict(postThreshold = POST_THRESH):
@@ -38,7 +38,7 @@ def generateTagVectors():
 
 
 TAG_DICT = generateTagVectors()
-
+print len(TAG_DICT)
 
 def randomCluster(numClusters):
     '''
@@ -54,7 +54,8 @@ def randomCluster(numClusters):
     return clusterList
 
 
-def evenClusters(numClusters):
+
+def evenCluster(numClusters):
     '''
     Set up for recursive clustering, uniformly distributing urls across n clusters
     Param: numClusters - the number of clusters to evenly distribute links across
@@ -74,20 +75,21 @@ def evenClusters(numClusters):
     return clusterList
 
 
-def calculateCosineSimilarity(centroid, urlVector):
+def calculateCosineSimilarity(centroid, tagVector):
     '''
     Calculate the cosine similiarity of any url's tags and that of a centroid for a given cluster
     Param: centroid - one averaged vector of tags for one cluster
            urlVector - a dictionary of tags and their occurances for one url
     Return: cosineSimilarity - the similarity of occurance of tags shared between the two vectors
+    TODO: Why does this sometimes return > 1?????
     '''
     numerator = 0.0 
     squaredA = 0.0
     squaredB = 0.0
     count = 0;
-    for item in urlVector:
+    for item in tagVector:
         if item in centroid:
-            a = float(urlVector[item])
+            a = float(tagVector[item])
             b = float(centroid[item])
             squaredA += float(math.pow(a,2))
             squaredB += float(math.pow(b,2))
@@ -99,41 +101,50 @@ def calculateCosineSimilarity(centroid, urlVector):
         return numerator / (math.sqrt(squaredA) * math.sqrt(squaredB))
 
 
-def clusterMatch(clusterCentroids, vector, numClusters):
+numClusters = len(TAG_DICT) / 10 # Get approx 10 tags in every cluster
+clusterList = randomCluster(100)
+tagVector = TAG_DICT['forest']
+
+def clusterMatch(clusterList, vector):
     '''
-    Find which cluster a url is best placed in given its current centroid
-    Param: clusterCentroids - a list of n centroid vectors, stored as dictionaries of key=tag, value=average occurance
+    Find which cluster a tag vector is best placed in given its current centroid
+    Param: clusterList - a list of n centroid vectors, stored as dictionaries of key=tag, value=average occurance
            urlVector - a single url's dictionary of key=tags, value=occurance of tag
-    Return: a sorted list of the similiarites of the vector
+    Return: index of the best matching cluster in the cluster list
     '''
     cosineSim = []
     index = 0;
-    for centroid in clusterCentroids:
-        similarity = calculateCosineSimilarity(centroid, vector)
+    for cluster in clusterList:
+        similarity = calculateCosineSimilarity(cluster.getCentroid(), vector.getTagCounter())
         cosineSim.append((index, similarity))
         index += 1
-    return sorted(cosineSim, key=lambda tup: tup[1], reverse=True) #sort by tuple's second value; courtesy of user 303180, stackOverflow
+    return sorted(cosineSim, key=lambda tup: tup[1], reverse=True)[0] #sort by tuple's second value; courtesy of user 303180, stackOverflow
 
+print clusterMatch(clusterList, tagVector)
 
-def reCluster(centroidList, numClusters):
+def reCluster(clusterList):
     '''
     Resort the clusters according to which centroid is closest
     Param: centroidList - a list of every cluster's centroid dictionary where key=tag, value=avg frequency of occurance
     '''
     iterCount = 0
     avg = 0
-    newClusters = [[] for x in xrange(numClusters)] 
-    for url in TAG_DICT:
-        similaritiesList = clusterMatch(centroidList, TAG_DICT[url], NUM_CLUSTERS)
-        avg += similaritiesList[0][1]
+    clusterList
+    for cluster in clusterList:
+        cluster.wipeMembers()
+    for tag in TAG_DICT:
+        matchTuple = clusterMatch(clusterList, TAG_DICT[tag])
+        bestIndex = matchTuple[0]
+        avg += matchTuple[1]
         iterCount +=1
-        if similaritiesList[0][1] == 0:
-            newIndex = random.randint(0, numClusters-1)
-        else:
-            newIndex = similaritiesList[0][0]
-        newClusters[newIndex].append((url, TAG_DICT[url]))
+        clusterList[bestIndex].addMember(TAG_DICT[tag])
+        if iterCount % 1000 == 0:
+            print "Still working, not broken"
     avg = avg/iterCount
-    return newClusters, avg
+    return clusterList, avg
+
+#clusterList, avg = reCluster(clusterList)
+#print "Average sim:", avg
 
 
 def printClusterUrls(clusters):
@@ -141,8 +152,7 @@ def printClusterUrls(clusters):
     for cluster in clusters:
         print "Cluster", index, ":"
         index += 1
-        for url in cluster:
-            print url[0]
+        print cluster.getMemberList
     
 
 def solve():
@@ -217,7 +227,7 @@ def mergeClusters(clusterList):
         newClusters.append(holderList[0])
     return newClusters
      
-            
+
 def mergingTest():
     '''
     Test the application of a merging method of clustering, takes the total number of tags, distributes evenly

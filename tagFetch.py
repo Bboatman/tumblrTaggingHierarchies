@@ -95,7 +95,8 @@ def main():
 	tagFile = open(WRITETAGS, 'w')
 	pickle.dump(objectDictionary, tagFile)
 	tagFile.close()
-
+	count = 0
+	printstr = ""
 
 
 CLIENT = accessAPI("data.txt")
