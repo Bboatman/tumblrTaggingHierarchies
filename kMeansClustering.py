@@ -36,7 +36,9 @@ def generateTagVectors():
             vectorDict[tag].updateVector(usrObj.tagDict[tag])
     return vectorDict
 
+
 TAG_DICT = generateTagVectors()
+
 
 def randomCluster(numClusters):
     '''
@@ -45,11 +47,11 @@ def randomCluster(numClusters):
     Return: clusteredUrls - a list of n lists containing a random distribution of tuples where the first item is a url
                             and the second is a default dictionary where key=tag value = frequency of occurance
     '''
-    clusterList = [tumblruser.TagCluster for x in xrange(numClusters)] # Courtesy of user 279627, Stack Overflow
+    clusterList = [tumblruser.TagCluster() for x in xrange(numClusters)] # Courtesy of user 279627, Stack Overflow
     for entry in TAG_DICT:
         loc = random.randint(0, numClusters - 1)
-        clusterList.addMember(TAG_DICT[entry])
-    return clusteredList
+        clusterList[loc].addMember(TAG_DICT[entry])
+    return clusterList
 
 
 def evenClusters(numClusters):
@@ -59,34 +61,18 @@ def evenClusters(numClusters):
     Return: clusteredUrls - a list of n lists containing a uniform distribution of tuples where the first item is a url
                             and the second is a default dictionary where key=tag value = frequency of occurance
     '''
-    clusterList = [tumblruser.TagCluster for x in xrange(numClusters)] 
+    clusterList = [tumblruser.TagCluster() for x in xrange(numClusters)] 
     partition = len(TAG_DICT) / numClusters
     loc = 0
     step = 0
     for entry in TAG_DICT:
         clusterList[loc].addMember(TAG_DICT[entry])
         step += 1
-        if step >= partition:
+        if step > partition:
             loc += 1
             step = 0
-    return clusteredUrls
+    return clusterList
 
-def calculateCentroids(clusterList):
-    '''
-    Set up for recursive clustering, uniformly distributing urls across n clusters
-    Param: numClusters - the number of clusters to evenly distribute links across
-    Return: clusteredUrls - a list of n lists containing a uniform distribution of tuples where the first item is a url
-                            and the second is a default dictionary where key=tag value = frequency of occurance
-    '''
-    centroidList = []
-    for cluster in clusterList:
-        centroid = c.defaultdict(int)
-        for item in cluster:
-            tags = item[1]
-            for entry in tags:
-                centroid[entry] += (float(tags[entry]) / float(len(cluster)))
-        centroidList.append(centroid)
-    return centroidList
 
 def calculateCosineSimilarity(centroid, urlVector):
     '''
@@ -112,6 +98,7 @@ def calculateCosineSimilarity(centroid, urlVector):
     else:
         return numerator / (math.sqrt(squaredA) * math.sqrt(squaredB))
 
+
 def clusterMatch(clusterCentroids, vector, numClusters):
     '''
     Find which cluster a url is best placed in given its current centroid
@@ -126,6 +113,7 @@ def clusterMatch(clusterCentroids, vector, numClusters):
         cosineSim.append((index, similarity))
         index += 1
     return sorted(cosineSim, key=lambda tup: tup[1], reverse=True) #sort by tuple's second value; courtesy of user 303180, stackOverflow
+
 
 def reCluster(centroidList, numClusters):
     '''
@@ -147,6 +135,7 @@ def reCluster(centroidList, numClusters):
     avg = avg/iterCount
     return newClusters, avg
 
+
 def printClusterUrls(clusters):
     index = 0
     for cluster in clusters:
@@ -155,6 +144,7 @@ def printClusterUrls(clusters):
         for url in cluster:
             print url[0]
     
+
 def solve():
     ''' Solve for k-means with random distribution '''
     clusters = randomClusters(NUM_CLUSTERS) # each cluster is a list of tuples containing a string and a dict
@@ -167,6 +157,7 @@ def solve():
         index += 1
     printClusterUrls(clusters)
     return  clusters, centroidList
+
 
 def bestFit(centroid, cluster, showNumber):
     '''
@@ -189,6 +180,7 @@ def bestFit(centroid, cluster, showNumber):
     else:
         return cosineSim[:showNumber - 1]
 
+
 def printBestItems(clusterList):
     index = 0
     
@@ -199,6 +191,7 @@ def printBestItems(clusterList):
             bestFitUrls = bestFit(centroidList[index], cluster, 5)
             for url in bestFitUrls:
                 print url
+
 
 def mergeClusters(clusterList):
     '''
@@ -223,6 +216,7 @@ def mergeClusters(clusterList):
         clusterList.remove(clusterList[0])
         newClusters.append(holderList[0])
     return newClusters
+     
             
 def mergingTest():
     '''

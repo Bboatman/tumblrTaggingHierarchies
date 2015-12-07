@@ -51,9 +51,20 @@ class TagVector(object):
 		self.tagName = name
 		self.tagCount = counter
 
+
+	def __str__(self):
+		return self.tagName
+
 	def updateVector(self, tagCollection):
 		""" Update a vector with a new collection of data """
 		self.tagCount += tagCollection
+
+	def getName(self):
+		return self.tagName
+
+
+	def setName(self, name):
+		self.tagName = name
 	
 
 class TagCluster(object):
@@ -67,7 +78,7 @@ class TagCluster(object):
 	def __str__(self):
 		returnString = ""
 		for tag in self.memberList[:-1]:
-			returnString += (", " + tag)
+			returnString += (tag + ", ")
 		returnString += self.memberList[-1]
 		return returnString
 
@@ -78,7 +89,7 @@ class TagCluster(object):
 
 
 	def addMember(self, tagVector):
-		self.memberList.append(TagVector.tagName)
+		self.memberList.append(tagVector.getName())
 		self.rawVector += tagVector.tagCount
 		frac = float(len(self.memberList))
 		for tag in self.rawVector:
