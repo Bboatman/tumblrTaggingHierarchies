@@ -85,12 +85,17 @@ def cleanList():
 
 
 def main():
-	runtime = 300 # 5 minutes in seconds
+	runtime = 40 
+	sampleRate = 10
 	now = time.time()
 	breaktime = now + runtime # Don't let it run for more than five minutes for sanity's sake
 	added = 1
-	while added > 0 and now < breaktime:
-		added = makeBlogList(getUrls())
+	sampleTime = 10 + now
+	while time.time() < breaktime:
+		now = time.time()
+		if now > sampleTime:
+			added = makeBlogList(getUrls())
+			sampleTime += sampleRate
 
 	#cleanList # If you're getting a lot of exception warnings uncomement this to throw out bad blogs
 

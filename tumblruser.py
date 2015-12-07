@@ -1,19 +1,9 @@
 import collections
-class User:
+class User(object):
 	def __init__(self, username):
 		self.userId = username
 		self.tagDict =  {}
 		self.posts = []
-
-
-	def __cmp__ (self, x):
-		if type(self) != type(x):
-			return -1
-		else:
-			if self.userId == x.userId:
-				return 0
-			else:
-				return 1
 
 
 	def __str__(self):
@@ -51,4 +41,50 @@ class User:
 	def getPosts(self):
 		return self.posts
 
+
+class TagVector(object):
+	""" 
+	A vector object to hold information about a specific 
+	tag for cosine similarity processing and clustering
+	"""
+	def __init__(self, name, counter = collections.Counter()):
+		self.tagName = name
+		self.tagCount = counter
+
+	def updateVector(self, tagCollection):
+		""" Update a vector with a new collection of data """
+		self.tagCount += tagCollection
 	
+
+class TagCluster(object):
+	""" Cluster for hierarchical ranking of tag vectors"""
+	def __init__(self):
+		self.memberList = []
+		self.rawVector = collections.Counter()
+		self.centroid = collections.defaultdict(float)
+
+
+	def __str__(self):
+		returnString = ""
+		for tag in self.memberList[:-1]:
+			returnString += (", " + tag)
+		returnString += self.memberList[-1]
+		return returnString
+
+
+	def wipeMembers(self):
+		self.memberList = []
+		self.rawVector = collections.Counter()
+
+
+	def addMember(self, tagVector):
+		self.memberList.append(TagVector.tagName)
+		self.rawVector += tagVector.tagCount
+		frac = float(len(self.memberList))
+		for tag in self.rawVector:
+			self.centroid[tag] = float(self.rawVector[tag]) / frac
+
+		
+
+
+

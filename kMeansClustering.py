@@ -3,58 +3,40 @@ TAGFILE = "tagfile.txt"
 NUM_RESORTS = 10
 NUM_CLUSTERS = 5
 STEP_SIZE = 3
-TAG_THRESH = 40
 POST_THRESH = 50
 
 
-def shrinkDict(postThreshold = POST_THRESH, tagThreshold = TAG_THRESH):
+def shrinkDict(postThreshold = POST_THRESH):
     '''
     Throw away all blogs with less than a certain number of tags and/or posts attached to them. 
     This prevents big corporate blogs and professional bloggers from overwhelming the results
-    Param: minThreshold - the minimum number of tags a url must have
-            rawDict - the intial dictionary of urls and their tags made by makeDict
-    Return: returnDict - dictionary of dicts counting frequency of tag occurance
-            key=url value=defaultdict(int)
-            key=tag value=frequency of occurance
+    Param: postThreshold - the minimum number of posts a user must have to be considered viable
+    Return: returnDict - dictionary of tumblruser objects counting frequency of tag occurance
     '''
     tagfile = open(TAGFILE, 'r')
     userDict = pickle.load(tagfile)
     tagfile.close()
-    userDict = {usrId: usrObj for (usrId, usrObj) in userDict.items() if len(usrObj.posts) >= POST_THRESH \
-                and len(usrObj.posts) <= (2 * POST_THRESH)}
-    userDict = {usrId: usrObj for (usrId, usrObj) in userDict.items() if len(usrObj.tagDict.keys()) >= TAG_THRESH \
-                and len(usrObj.tagDict.keys()) <= (5 * TAG_THRESH)}
+    userDict = {usrId: usrObj for (usrId, usrObj) in userDict.items() if len(usrObj.posts) >= POST_THRESH}
     return userDict
 
-userDict = shrinkDict()
-for user in userDict:
-    tags = userDict[user]
-    for tag in tags:
-        collector = tags[tag]
-        print collector
-        break
 
-
-def generateTagVectors(userDict):
+def generateTagVectors():
     ''' 
     Generate tag vectors for cosine similarity analysis
     Param: userDict - a dictionary of tumblruser objects
     Return: vectorDict - a dictionary of tag vectors with tags as keys and counters as values
     '''
     vectorDict = {}
+    userDict = shrinkDict()
     for user in userDict:
         usrObj = userDict[user]
         for tag in usrObj.tagDict:
             if tag not in vectorDict:
-                vectorDict[tag] = c.Counter()
-            vectorDict[tag] += usrObj.tagDict[tag]
+                vectorDict[tag] = tumblruser.TagVector(tag)
+            vectorDict[tag].updateVector(usrObj.tagDict[tag])
     return vectorDict
 
-'''
-vectorDict = generateTagVectors(shrinkDict())
-for item in vectorDict:
-    print vectorDict[item]
-    break '''
+TAG_DICT = generateTagVectors()
 
 def randomCluster(numClusters):
     '''
@@ -63,11 +45,11 @@ def randomCluster(numClusters):
     Return: clusteredUrls - a list of n lists containing a random distribution of tuples where the first item is a url
                             and the second is a default dictionary where key=tag value = frequency of occurance
     '''
-    clusteredUser = [[] for x in xrange(numClusters)] # Courtesy of user 279627, Stack Overflow
+    clusterList = [tumblruser.TagCluster for x in xrange(numClusters)] # Courtesy of user 279627, Stack Overflow
     for entry in TAG_DICT:
         loc = random.randint(0, numClusters - 1)
-        clusteredUrls[loc].append((entry, TAG_DICT[entry]))
-    return clusteredUrls
+        clusterList.addMember(TAG_DICT[entry])
+    return clusteredList
 
 
 def evenClusters(numClusters):
@@ -77,14 +59,14 @@ def evenClusters(numClusters):
     Return: clusteredUrls - a list of n lists containing a uniform distribution of tuples where the first item is a url
                             and the second is a default dictionary where key=tag value = frequency of occurance
     '''
-    clusteredUrls = [[] for x in xrange(numClusters)] 
-    divided = len(TAG_DICT) / numClusters
+    clusterList = [tumblruser.TagCluster for x in xrange(numClusters)] 
+    partition = len(TAG_DICT) / numClusters
     loc = 0
     step = 0
     for entry in TAG_DICT:
-        clusteredUrls[loc].append((entry, TAG_DICT[entry]))
+        clusterList[loc].addMember(TAG_DICT[entry])
         step += 1
-        if step >= divided:
+        if step >= partition:
             loc += 1
             step = 0
     return clusteredUrls

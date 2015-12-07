@@ -6,7 +6,8 @@ POST_LIM = 100
 
 def accessAPI(filename):
 	''' 
-	Open up an API client using a csv file for input 
+	Open up an API client without directly needing to input credentials
+	so I can share my code
 	Param: filename - the .txt file that contains the api keys
 	'''
 	info = open(filename, 'r')
@@ -37,7 +38,6 @@ def collectUserTags(iterations, allUsers = {}, usernames = []):
 				if  len(objectPosts) >= POST_LIM: #If user has hit post limit, just skip them
 						break
 				posts = CLIENT.posts(usr, offset=offset)['posts']
-
 				for post in posts:
 					if str(post['id']) not in objectPosts and len(objectPosts) < POST_LIM:
 						if len(post['tags']) > THRESHOLD:  #Ignore posts that don't have at least THRESHOLD tags
@@ -99,4 +99,4 @@ def main():
 
 
 CLIENT = accessAPI("data.txt")
-main()
+main()\
