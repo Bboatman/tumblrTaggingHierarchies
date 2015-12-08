@@ -112,7 +112,7 @@ class TagCluster(object):
 		frac = float(len(self.memberList))
 		for tag in self.rawVector:
 			centroidCounter[tag] = float(self.rawVector[tag]) / frac
-		return centroidCounter
+		self.centroid = centroidCounter
 
 
 		

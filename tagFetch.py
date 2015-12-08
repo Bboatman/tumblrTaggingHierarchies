@@ -1,8 +1,9 @@
-import pytumblr, collections, pickle, tumblruser, warnings
+import pytumblr, collections, pickle, tumblruser, warnings, random
 USERDATA = "usernames.txt"
 WRITETAGS = "tagfile.txt"
 THRESHOLD = 2
 POST_LIM = 100
+SAMPLE_SIZE = 80
 
 def accessAPI(filename):
 	''' 
@@ -18,14 +19,14 @@ def accessAPI(filename):
 
 def collectUserTags(iterations, allUsers = {}, usernames = []):
 	''' 
-	Holy nested loops batman! Aadd unseen posts to user object 
+	Holy nested loops batman! Add unseen posts to user object 
 	Param: iterations - the number of pages (each conatining 20 posts) to look through
 		   allUsers - the tumblruser object dictionary being updated
 		   usernames - the list of usernames to be processed
     Return: allUsers - an updated tumblruser object dictionary
 	'''
 	printCount = 0
-	for usr in usernames:
+	for usr in usernames[:100]:
 		count = 0
 		if usr not in allUsers:
 			allUsers[usr] = tumblruser.User(usr)
@@ -53,10 +54,6 @@ def collectUserTags(iterations, allUsers = {}, usernames = []):
 		# If a user gets updated, print the update
 		if count > 0:
 			print allUsers[usr]
-		# Keep me from getting all neurotic
-		if printCount > 400:
-			print "Still working, not broken"
-			printCount = 0
 	return allUsers 
 
 
@@ -87,7 +84,8 @@ def primeData(noNames = False, noTags = False):
 
 
 def main():
-	userDict, usernames = primeData()
+	userDict, usernames = primeData(noTags=True)
+	usernames = random.sample(usernames, SAMPLE_SIZE)
 	objectDictionary = collectUserTags(5, userDict, usernames) #Get the last 100 posts from every user
 
 	

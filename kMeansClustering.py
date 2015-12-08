@@ -1,9 +1,16 @@
-import random, math, pickle, collections as c, tumblruser
+import random 
+import math
+import pickle
+import collections as c
+import tumblruser
+from multiprocessing import Process, Queue, freeze_support
+import sys
+
 TAGFILE = "tagfile.txt"
 NUM_RESORTS = 10
-NUM_CLUSTERS = 5
+NUM_CLUSTERS = 100
 STEP_SIZE = 3
-POST_THRESH = 80
+POST_THRESH = 10
 
 
 def shrinkDict(postThreshold = POST_THRESH):
@@ -38,7 +45,7 @@ def generateTagVectors():
 
 
 TAG_DICT = generateTagVectors()
-print len(TAG_DICT)
+#print len(TAG_DICT)
 
 def randomCluster(numClusters):
     '''
@@ -101,10 +108,6 @@ def calculateCosineSimilarity(centroid, tagVector):
         return numerator / (math.sqrt(squaredA) * math.sqrt(squaredB))
 
 
-numClusters = len(TAG_DICT) / 10 # Get approx 10 tags in every cluster
-clusterList = randomCluster(100)
-tagVector = TAG_DICT['forest']
-
 def clusterMatch(clusterList, vector):
     '''
     Find which cluster a tag vector is best placed in given its current centroid
@@ -120,7 +123,6 @@ def clusterMatch(clusterList, vector):
         index += 1
     return sorted(cosineSim, key=lambda tup: tup[1], reverse=True)[0] #sort by tuple's second value; courtesy of user 303180, stackOverflow
 
-print clusterMatch(clusterList, tagVector)
 
 def reCluster(clusterList):
     '''
@@ -129,44 +131,52 @@ def reCluster(clusterList):
     '''
     iterCount = 0
     avg = 0
-    clusterList
-    for cluster in clusterList:
+    sys.stdout.flush()
+    q = Queue()
+    for item in TAG_DICT.values(): #Set up queue
+        q.put(item)
+
+    resultList = []
+    for i in range(10): # Match Threads
+        print "Make a thread"
+        p = Process(target=processClusters, args=(clusterList,q,))
+        p.start()
+    
+    for cluster in clusterList: # Wipe clusters
         cluster.wipeMembers()
-    for tag in TAG_DICT:
-        matchTuple = clusterMatch(clusterList, TAG_DICT[tag])
-        bestIndex = matchTuple[0]
-        avg += matchTuple[1]
-        iterCount +=1
-        clusterList[bestIndex].addMember(TAG_DICT[tag])
-        if iterCount % 1000 == 0:
-            print "Still working, not broken"
+
+    for resultTuple in resultList: # Put clusters in their best match
+        tagVector = TAG_DICT[resultTuple[1]]
+        index = resultTuple[0][0]
+        avg += resultTuple[0][1]
+        iterCount += 1
+        clusterList[index].addMember(tagVector)
+
     avg = avg/iterCount
     return clusterList, avg
 
-#clusterList, avg = reCluster(clusterList)
-#print "Average sim:", avg
+reCluster(randomCluster(NUM_CLUSTERS))
 
-
-def printClusterUrls(clusters):
+def printClusterUrls(clusterList, breakpt):
     index = 0
-    for cluster in clusters:
+    for cluster in clusterList:
         print "Cluster", index, ":"
+        sys.stdout.flush()
         index += 1
-        print cluster.getMemberList
+        print cluster.getMemberList()[:breakpt]
     
 
 def solve():
     ''' Solve for k-means with random distribution '''
-    clusters = randomClusters(NUM_CLUSTERS) # each cluster is a list of tuples containing a string and a dict
-    centroidList = calculateCentroids(clusters)
+    clusterList = randomCluster(NUM_CLUSTERS) # each cluster is a list of tuples containing a string and a dict
     index = 0
     while index < NUM_RESORTS:
-        clusters, avg = reCluster(centroidList, NUM_CLUSTERS)
-        centroidList = calculateCentroids(clusters)
+        clusterList, avg = reCluster(clusterList)
         print "Sort number", index, "Average correlation", avg
+        sys.stdout.flush()
         index += 1
-    printClusterUrls(clusters)
-    return  clusters, centroidList
+    printClusterUrls(clusters,10)
+    return  clusterList
 
 
 def bestFit(centroid, cluster, showNumber):
