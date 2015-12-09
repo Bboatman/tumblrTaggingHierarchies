@@ -2,15 +2,17 @@ import random
 import math
 import pickle
 import collections as c
-import tumblruser
-from multiprocessing import Process, Queue, freeze_support
-import sys
+import tumblruser, htmlwrite
+import numpy as np
+from scipy import spatial
+from sklearn.manifold import TSNE
+import matplotlib.pyplot as plt
 
 TAGFILE = "tagfile.txt"
 NUM_RESORTS = 10
-NUM_CLUSTERS = 100
+NUM_CLUSTERS = 20
 STEP_SIZE = 3
-POST_THRESH = 10
+POST_THRESH = 90
 
 
 def shrinkDict(postThreshold = POST_THRESH):
@@ -44,9 +46,6 @@ def generateTagVectors():
     return vectorDict
 
 
-TAG_DICT = generateTagVectors()
-#print len(TAG_DICT)
-
 def randomCluster(numClusters):
     '''
     Set up for recursive clustering, randomly distributing urls across n clusters
@@ -58,6 +57,8 @@ def randomCluster(numClusters):
     for entry in TAG_DICT:
         loc = random.randint(0, numClusters - 1)
         clusterList[loc].addMember(TAG_DICT[entry])
+    for cluster in clusterList:
+        cluster.setCentroid()
     return clusterList
 
 
@@ -90,22 +91,17 @@ def calculateCosineSimilarity(centroid, tagVector):
     Return: cosineSimilarity - the similarity of occurance of tags shared between the two vectors
     TODO: Why does this sometimes return > 1?????
     '''
-    numerator = 0.0 
-    squaredA = 0.0
-    squaredB = 0.0
-    count = 0;
+    a = []
+    b =[]
     for item in tagVector:
         if item in centroid:
-            a = float(tagVector[item])
-            b = float(centroid[item])
-            squaredA += float(math.pow(a,2))
-            squaredB += float(math.pow(b,2))
-            numerator += float(a*b)
-            count += 1
-    if count == 0:
-        return 0
+            a.append(float(tagVector[item]))
+            b.append(float(centroid[item]))
+
+    if len(a) == 0:
+        return 1
     else:
-        return numerator / (math.sqrt(squaredA) * math.sqrt(squaredB))
+        return spatial.distance.cosine(a,b)
 
 
 def clusterMatch(clusterList, vector):
@@ -121,7 +117,7 @@ def clusterMatch(clusterList, vector):
         similarity = calculateCosineSimilarity(cluster.getCentroid(), vector.getTagCounter())
         cosineSim.append((index, similarity))
         index += 1
-    return sorted(cosineSim, key=lambda tup: tup[1], reverse=True)[0] #sort by tuple's second value; courtesy of user 303180, stackOverflow
+    return sorted(cosineSim, key=lambda tup: tup[1], reverse=False) #sort by tuple's second value; courtesy of user 303180, stackOverflow
 
 
 def reCluster(clusterList):
@@ -131,52 +127,22 @@ def reCluster(clusterList):
     '''
     iterCount = 0
     avg = 0
-    sys.stdout.flush()
-    q = Queue()
-    for item in TAG_DICT.values(): #Set up queue
-        q.put(item)
-
-    resultList = []
-    for i in range(10): # Match Threads
-        print "Make a thread"
-        p = Process(target=processClusters, args=(clusterList,q,))
-        p.start()
-    
-    for cluster in clusterList: # Wipe clusters
-        cluster.wipeMembers()
-
-    for resultTuple in resultList: # Put clusters in their best match
-        tagVector = TAG_DICT[resultTuple[1]]
-        index = resultTuple[0][0]
-        avg += resultTuple[0][1]
-        iterCount += 1
-        clusterList[index].addMember(tagVector)
-
-    avg = avg/iterCount
-    return clusterList, avg
-
-reCluster(randomCluster(NUM_CLUSTERS))
-
-def printClusterUrls(clusterList, breakpt):
-    index = 0
     for cluster in clusterList:
-        print "Cluster", index, ":"
-        sys.stdout.flush()
-        index += 1
-        print cluster.getMemberList()[:breakpt]
-    
+        cluster.wipeMembers()
+    tagList = TAG_DICT.values()
 
-def solve():
-    ''' Solve for k-means with random distribution '''
-    clusterList = randomCluster(NUM_CLUSTERS) # each cluster is a list of tuples containing a string and a dict
-    index = 0
-    while index < NUM_RESORTS:
-        clusterList, avg = reCluster(clusterList)
-        print "Sort number", index, "Average correlation", avg
-        sys.stdout.flush()
-        index += 1
-    printClusterUrls(clusters,10)
-    return  clusterList
+    for tag in tagList:
+        matchTuple = clusterMatch(clusterList, tag)[0]
+        bestIndex = matchTuple[0]
+        avg += matchTuple[1]
+        iterCount +=1
+        clusterList[bestIndex].addMember(tag)
+        if iterCount % 500 == 0:
+            print matchTuple[1], tag.getName(), matchTuple[0]
+    avg = avg/iterCount
+    for cluster in clusterList:
+        cluster.setCentroid() 
+    return clusterList, avg
 
 
 def bestFit(centroid, cluster, showNumber):
@@ -215,10 +181,7 @@ def printBestItems(clusterList):
 
 def mergeClusters(clusterList):
     '''
-    Merge most similar groups evenly by step size
-    Param: clusterList - the list of clusters to be merged
-    Return: the new cluster list once all have been merged
-    TODO: Look into ways of throwing out empty clusters because nothing will ever be saved there
+    TODO : This is wrong don't use it yet
     '''
     newClusters = []
     for cluster in clusterList: #for all remaining clusters in list
@@ -240,9 +203,7 @@ def mergeClusters(clusterList):
 
 def mergingTest():
     '''
-    Test the application of a merging method of clustering, takes the total number of tags, distributes evenly
-    accross a huge list of clusters and reduces down to num clusters
-    Might want to look into a clever way of flexible step size for merging clusters together
+    TODO : This is wrong don't use it yet
     '''
     numClusters = TOTAL_TAGS
     clusters = evenClusters(numClusters)
@@ -263,10 +224,51 @@ def mergingTest():
         print numClusters
     printClusterUrls(clusters)
     return clusters, centroidList
-    
-'''
-TAG_DICT = processUrls() # Dictionary of urls and their tags, and individual frequency of occurance
-sortedClusters, centroidList = solve()
-printBestItems(sortedClusters, centroidList)
-clusters, centroidList = mergingTest()
-printBestItems(clusters, centroidList) '''
+
+
+def makeSimVectors():
+    count = 0
+    for i in range(NUM_RESORTS):
+        clusterList = randomCluster(numClusters)
+        clusterList, avg = reCluster(clusterList)
+        print avg, i
+    visualiserDict ={}
+    for tag in TAG_DICT:
+        vector = TAG_DICT[tag]
+        cosineSim = clusterMatch(clusterList, vector)
+        similarityList = range(numClusters)
+        for tupleVal in cosineSim:
+            index = tupleVal[0]
+            similarityList[index] = tupleVal[1]
+        visualiserDict[tag] = similarityList
+        count += 1
+        if count % 500 == 0:
+            print tag
+    return visualiserDict
+
+
+TAG_DICT = generateTagVectors()
+print len(TAG_DICT)
+numClusters = 1000
+simVector = makeSimVectors()
+tsne = TSNE(n_components=2, init='pca', random_state=0)
+labels = sorted(simVector.keys())
+fData = tsne.fit_transform([simVector[w] for w in labels])
+
+
+
+def scale(value, mult = 20, add = 500 + int(10*random.random())):
+    return str(float(value)*mult + add)
+
+
+np.savetxt('rawData.txt', fData, fmt="%.9f", delimiter=' ')
+raw = open("rawData.txt")
+displayFile = open("display.html", "w")
+displayFile.write(htmlwrite.getTop())
+for i, line in enumerate(raw.readlines()):
+    x, y = line.split()
+    displayFile.write("[" + scale(x) + ", " + scale(y) + ", " + '\"' + labels[i] + '\"' + "],\n")
+raw.close()
+displayFile.write(htmlwrite.getBottom())
+displayFile.close()
+

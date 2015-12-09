@@ -89,7 +89,6 @@ class TagCluster(object):
 
 
 	def wipeMembers(self):
-		self.setCentroid()
 		self.memberList = []
 		self.rawVector = collections.Counter()
 
@@ -103,8 +102,6 @@ class TagCluster(object):
 		return self.memberList
 
 	def getCentroid(self):
-		if len(self.memberList) > 0:
-			self.setCentroid()
 		return self.centroid
 
 	def setCentroid(self):
