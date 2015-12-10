@@ -12,7 +12,7 @@ TAGFILE = "tagfile.txt"
 NUM_RESORTS = 10
 NUM_CLUSTERS = 20
 STEP_SIZE = 3
-POST_THRESH = 90
+POST_THRESH = 50
 
 
 def shrinkDict(postThreshold = POST_THRESH):
@@ -246,20 +246,17 @@ def makeSimVectors():
             print tag
     return visualiserDict
 
+def scale(value, mult = 80, add = 500 + 300*random.random()):
+    value = float(value)
+    return str(int(float(value)*mult + add))
 
 TAG_DICT = generateTagVectors()
 print len(TAG_DICT)
-numClusters = 1000
+numClusters = 100
 simVector = makeSimVectors()
 tsne = TSNE(n_components=2, init='pca', random_state=0)
 labels = sorted(simVector.keys())
 fData = tsne.fit_transform([simVector[w] for w in labels])
-
-
-
-def scale(value, mult = 20, add = 500 + int(10*random.random())):
-    return str(float(value)*mult + add)
-
 
 np.savetxt('rawData.txt', fData, fmt="%.9f", delimiter=' ')
 raw = open("rawData.txt")
