@@ -1,3 +1,9 @@
+''' 
+Author: Brooke Boatman
+Date: December 2015
+Clustering visualiser for tumblr tag data
+'''
+
 import random 
 import math
 import pickle
@@ -10,7 +16,7 @@ import matplotlib.pyplot as plt
 
 TAGFILE = "tagfile.txt"
 NUM_RESORTS = 10
-NUM_CLUSTERS = 20
+NUM_CLUSTERS = 600
 STEP_SIZE = 3
 POST_THRESH = 50
 
@@ -18,9 +24,9 @@ POST_THRESH = 50
 def shrinkDict(postThreshold = POST_THRESH):
     '''
     Throw away all blogs with less than a certain number of tags and/or posts attached to them. 
-    This prevents big corporate blogs and professional bloggers from overwhelming the results
+    This helps weed down the data so that we have less to attempt to run.
     Param: postThreshold - the minimum number of posts a user must have to be considered viable
-    Return: returnDict - dictionary of tumblruser objects counting frequency of tag occurance
+    Return: userDict - dictionary of tumblruser objects counting frequency of tag occurance
     '''
     tagfile = open(TAGFILE, 'r')
     userDict = pickle.load(tagfile)
@@ -29,14 +35,13 @@ def shrinkDict(postThreshold = POST_THRESH):
     return userDict
 
 
-def generateTagVectors():
+def generateTagVectors(userDict = shrinkDict()):
     ''' 
-    Generate tag vectors for cosine similarity analysis
+    Generate sparse vectors of tag co-occurance for cosine similarity analysis
     Param: userDict - a dictionary of tumblruser objects
     Return: vectorDict - a dictionary of tag vectors with tags as keys and counters as values
     '''
     vectorDict = {}
-    userDict = shrinkDict()
     for user in userDict:
         usrObj = userDict[user]
         for tag in usrObj.tagDict:
@@ -49,11 +54,10 @@ def generateTagVectors():
 def randomCluster(numClusters):
     '''
     Set up for recursive clustering, randomly distributing urls across n clusters
-    Param: numClusters - the number of clusters to randomly distribute links across
-    Return: clusteredUrls - a list of n lists containing a random distribution of tuples where the first item is a url
-                            and the second is a default dictionary where key=tag value = frequency of occurance
+    Param: numClusters - the number of clusters to randomly distribute tag vectors across
+    Return: clusteredUrls - a list of size numClusters of TagCluster objects
     '''
-    clusterList = [tumblruser.TagCluster() for x in xrange(numClusters)] # Courtesy of user 279627, Stack Overflow
+    clusterList = [tumblruser.TagCluster() for x in xrange(numClusters)]
     for entry in TAG_DICT:
         loc = random.randint(0, numClusters - 1)
         clusterList[loc].addMember(TAG_DICT[entry])
@@ -62,34 +66,12 @@ def randomCluster(numClusters):
     return clusterList
 
 
-
-def evenCluster(numClusters):
+def calculateCosineDistance(centroid, tagVector):
     '''
-    Set up for recursive clustering, uniformly distributing urls across n clusters
-    Param: numClusters - the number of clusters to evenly distribute links across
-    Return: clusteredUrls - a list of n lists containing a uniform distribution of tuples where the first item is a url
-                            and the second is a default dictionary where key=tag value = frequency of occurance
-    '''
-    clusterList = [tumblruser.TagCluster() for x in xrange(numClusters)] 
-    partition = len(TAG_DICT) / numClusters
-    loc = 0
-    step = 0
-    for entry in TAG_DICT:
-        clusterList[loc].addMember(TAG_DICT[entry])
-        step += 1
-        if step > partition:
-            loc += 1
-            step = 0
-    return clusterList
-
-
-def calculateCosineSimilarity(centroid, tagVector):
-    '''
-    Calculate the cosine similiarity of any url's tags and that of a centroid for a given cluster
-    Param: centroid - one averaged vector of tags for one cluster
-           urlVector - a dictionary of tags and their occurances for one url
-    Return: cosineSimilarity - the similarity of occurance of tags shared between the two vectors
-    TODO: Why does this sometimes return > 1?????
+    Calculate the cosine distance of any tag vector and a cluster's centroid
+    Param: centroid - averaged vector of tags for one cluster
+           urlVector - a dictionary of tags occurances one tag
+    Return: cosine distance of a and b
     '''
     a = []
     b =[]
@@ -107,23 +89,25 @@ def calculateCosineSimilarity(centroid, tagVector):
 def clusterMatch(clusterList, vector):
     '''
     Find which cluster a tag vector is best placed in given its current centroid
-    Param: clusterList - a list of n centroid vectors, stored as dictionaries of key=tag, value=average occurance
-           urlVector - a single url's dictionary of key=tags, value=occurance of tag
+    Param: clusterList - a list of cluster objects
+           vector - a single tagVector object
     Return: index of the best matching cluster in the cluster list
     '''
     cosineSim = []
     index = 0;
     for cluster in clusterList:
-        similarity = calculateCosineSimilarity(cluster.getCentroid(), vector.getTagCounter())
+        similarity = calculateCosineDistance(cluster.getCentroid(), vector.getTagCounter())
         cosineSim.append((index, similarity))
         index += 1
-    return sorted(cosineSim, key=lambda tup: tup[1], reverse=False) #sort by tuple's second value; courtesy of user 303180, stackOverflow
+    return sorted(cosineSim, key=lambda tup: tup[1], reverse=False) 
 
 
 def reCluster(clusterList):
     '''
     Resort the clusters according to which centroid is closest
-    Param: centroidList - a list of every cluster's centroid dictionary where key=tag, value=avg frequency of occurance
+    Param: clusterList - a list of every cluster to be reclustered
+    Return: clusterList - the resorted list of clusters
+            avg - the average distance of a tag and it's new cluster after resorting
     '''
     iterCount = 0
     avg = 0
@@ -144,20 +128,16 @@ def reCluster(clusterList):
         cluster.setCentroid() 
     return clusterList, avg
 
-
+'''
 def bestFit(centroid, cluster, showNumber):
-    '''
-    Find which urls are the best represtatives of their cluster
-    Param: centroid - the vector value of a cluster to compare urls agains
-           cluster - a list of urls and their dictionaries that contain tags and frequencies
-           showNumber - the number of urls to show as best representatives of their cluster
-    Return: a sorted list that contains the n most representative urls
-    '''
+    
+    #TODO: Old code from related project, won't work yet, needs updated
+    
     cosineSim = []
     index = 0;
-    for url in cluster:
+    for tag in cluster:
         tags = url[1]
-        similarity = calculateCosineSimilarity(centroid, tags)
+        similarity = calculateCosineDistance(centroid, tags)
         cosineSim.append((url[0], similarity))
         index += 1
     cosineSim = sorted(cosineSim, key=lambda tup: tup[1], reverse=True) 
@@ -168,6 +148,7 @@ def bestFit(centroid, cluster, showNumber):
 
 
 def printBestItems(clusterList):
+    TODO: Old code from related project, won't work yet, needs updated
     index = 0
     
     for cluster in sortedClusters:
@@ -180,9 +161,7 @@ def printBestItems(clusterList):
 
 
 def mergeClusters(clusterList):
-    '''
-    TODO : This is wrong don't use it yet
-    '''
+    TODO: Old code from related project, won't work yet, needs updated
     newClusters = []
     for cluster in clusterList: #for all remaining clusters in list
         holderList = []
@@ -191,7 +170,7 @@ def mergeClusters(clusterList):
             centroidList = calculateCentroids(clusterList)
             # get all similarities
             for i in range(0, len(centroidList)): 
-                cosineSim.append((i,calculateCosineSimilarity(centroidList[i],centroidList[0])))
+                cosineSim.append((i,calculateCosineDistance(centroidList[i],centroidList[0])))
                 cosineSim = sorted(cosineSim, key=lambda tup: tup[1], reverse=True)
             holderList.append(clusterList[cosineSim[0][0]])
             clusterList.remove(clusterList[cosineSim[0][0]])
@@ -202,9 +181,7 @@ def mergeClusters(clusterList):
      
 
 def mergingTest():
-    '''
-    TODO : This is wrong don't use it yet
-    '''
+    TODO: Old code from related project, won't work yet, needs updated
     numClusters = TOTAL_TAGS
     clusters = evenClusters(numClusters)
     centroidList = calculateCentroids(clusters)
@@ -224,12 +201,17 @@ def mergingTest():
         print numClusters
     printClusterUrls(clusters)
     return clusters, centroidList
+'''
 
 
 def makeSimVectors():
+    '''
+    Create dense vectors for each tag by finding their distance from every cluster
+    Return: visualiserDict - dictionary of dense tag vectors
+    '''
     count = 0
     for i in range(NUM_RESORTS):
-        clusterList = randomCluster(numClusters)
+        clusterList = randomCluster(NUM_CLUSTERS)
         clusterList, avg = reCluster(clusterList)
         print avg, i
     visualiserDict ={}
@@ -246,26 +228,36 @@ def makeSimVectors():
             print tag
     return visualiserDict
 
-def scale(value, mult = 80, add = 500 + 300*random.random()):
+
+def scale(value, mult = 80, add = 500 + (300*random.random())):
+    '''
+    Scale compressed 2d points so that they fill the browser screen
+    '''
     value = float(value)
     return str(int(float(value)*mult + add))
 
+
+def generateHTML():
+    ''' 
+    Create the html file of compressed data points and graph that to 
+    voronoi tesselations based off of rebecca's javascript
+    '''
+    simVector = makeSimVectors()
+    tsne = TSNE(n_components=2, init='pca', random_state=0)
+    labels = sorted(simVector.keys())
+    fData = tsne.fit_transform([simVector[w] for w in labels])
+
+    np.savetxt('rawData.txt', fData, fmt="%.9f", delimiter=' ')
+    raw = open("rawData.txt")
+    displayFile = open("display.html", "w")
+    displayFile.write(htmlwrite.getTop())
+    for i, line in enumerate(raw.readlines()):
+        x, y = line.split()
+        displayFile.write("[" + scale(x) + ", " + scale(y) + ", " + '\"' + labels[i] + '\"' + "],\n")
+    raw.close()
+    displayFile.write(htmlwrite.getBottom())
+    displayFile.close()
+
+
 TAG_DICT = generateTagVectors()
-print len(TAG_DICT)
-numClusters = 100
-simVector = makeSimVectors()
-tsne = TSNE(n_components=2, init='pca', random_state=0)
-labels = sorted(simVector.keys())
-fData = tsne.fit_transform([simVector[w] for w in labels])
-
-np.savetxt('rawData.txt', fData, fmt="%.9f", delimiter=' ')
-raw = open("rawData.txt")
-displayFile = open("display.html", "w")
-displayFile.write(htmlwrite.getTop())
-for i, line in enumerate(raw.readlines()):
-    x, y = line.split()
-    displayFile.write("[" + scale(x) + ", " + scale(y) + ", " + '\"' + labels[i] + '\"' + "],\n")
-raw.close()
-displayFile.write(htmlwrite.getBottom())
-displayFile.close()
-
+generateHTML()

@@ -1,3 +1,9 @@
+''' Authors: Brooke Boatman and Rebecca Gold
+    Date: December 2015
+    Methods to produce the wrapping html for voronoi tesselations
+    Pulled out of code for readability
+'''
+
 def getTop():
     return """
     <!DOCTYPE HTML>

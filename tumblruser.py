@@ -57,7 +57,9 @@ class TagVector(object):
 
 
 	def updateVector(self, tagCollection):
-		""" Update a vector with a new collection of data """
+		""" 
+		Update a vector with a new collection of data 
+		"""
 		self.tagCount += tagCollection
 
 
@@ -73,7 +75,9 @@ class TagVector(object):
 		return self.tagCount
 
 class TagCluster(object):
-	""" Cluster for hierarchical ranking of tag vectors"""
+	""" 
+	Cluster for hierarchical ranking of tag vectors
+	"""
 	def __init__(self):
 		self.memberList = []
 		self.rawVector = collections.Counter()

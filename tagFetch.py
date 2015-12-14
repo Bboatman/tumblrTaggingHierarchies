@@ -3,7 +3,7 @@ USERDATA = "usernames.txt"
 WRITETAGS = "tagfile.txt"
 THRESHOLD = 2
 POST_LIM = 100
-SAMPLE_SIZE = 80
+SAMPLE_SIZE = 150
 
 def accessAPI(filename):
 	''' 
@@ -26,7 +26,7 @@ def collectUserTags(iterations, allUsers = {}, usernames = []):
     Return: allUsers - an updated tumblruser object dictionary
 	'''
 	printCount = 0
-	for usr in usernames[:100]:
+	for usr in usernames:
 		count = 0
 		if usr not in allUsers:
 			allUsers[usr] = tumblruser.User(usr)
