@@ -218,7 +218,7 @@ def makeSimVectors():
     for tag in TAG_DICT:
         vector = TAG_DICT[tag]
         cosineSim = clusterMatch(clusterList, vector)
-        similarityList = range(numClusters)
+        similarityList = range(NUM_CLUSTERS)
         for tupleVal in cosineSim:
             index = tupleVal[0]
             similarityList[index] = tupleVal[1]
