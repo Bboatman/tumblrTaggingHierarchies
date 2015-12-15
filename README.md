@@ -7,3 +7,10 @@ Python Files:
 - tumblruser.py: Classes to make the organization of clustering and tag vector manipulation more managable
 	- Includes: User, TagVector, and TagCluster classes
 - kMeansClustering.py: Generate random clusters of tags and recursively resort n times (default is 10) before calculating every tag's distance from every cluster, then compressing those values into 2 dimensional points for visualizing similarities.
+
+TODO:
+- Look into python processes to speed everything up
+- Figure out how to separate overlapping tags for greater visibility
+- Keep track of which users a tag belongs to to further visualize clustering success
+- Color code tag tesselations based on which user said that tag most
+- Draw bounding borders of clustered tesselations
