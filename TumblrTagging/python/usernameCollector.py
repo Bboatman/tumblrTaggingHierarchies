@@ -92,8 +92,13 @@ def cleanList():
 	userfile = open(USRFILE, 'r')
 	usernames = pickle.load(userfile)
 	userfile = userfile.close()
-	makeBlogList(usernames) 
-
+	#makeBlogList(usernames) 
+	sampleFile = open('java.txt', 'w')
+	sampleFile.write("[")
+	for item in usernames:
+		sampleFile.write(item + ",")
+	sampleFile.write("]")
+	sampleFile.close()
 
 def main():
 	runtime = 300
@@ -112,4 +117,5 @@ def main():
 
 
 client = accessAPI(APIKEYS)
-main()
+#main()
+cleanList();
