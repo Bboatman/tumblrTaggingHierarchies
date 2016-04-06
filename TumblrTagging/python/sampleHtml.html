@@ -1,0 +1,225 @@
+
+    <!DOCTYPE HTML>
+
+    <html>
+        <head>
+            <title>WikiBrainMap</title>
+            <script type="text/javascript" src="../d3/d3.v3.min.js"></script>
+        </head>
+
+        <body>
+        <script type="text/javascript">
+            var w = 2000;
+            var h = 2000;
+
+            var dataset = [
+    [885, 455, "*", 216, 80],
+[678, 1864, "2015", 36, 89],
+[830, 533, "2016", 216, 80],
+[681, 1205, "420", 0, 87],
+[838, 369, "Illustration", 216, 80],
+[255, 670, "Love", 108, 83],
+[274, 1274, "Photography", 0, 87],
+[1089, 1118, "adorable", 288, 91],
+[834, 1272, "adventure", 36, 89],
+[754, 490, "animals", 216, 80],
+[428, 937, "animation", 360, 90],
+[1359, 1013, "anime", 252, 89],
+[499, 1193, "architecture", 0, 87],
+[1274, 701, "art", 72, 90],
+[1304, 853, "artists on tumblr", 324, 86],
+[1009, 1580, "artwork", 36, 89],
+[974, 573, "ass", 144, 89],
+[348, 509, "batman", 108, 83],
+[1191, 1335, "bdsm", 288, 91],
+[887, 1451, "beach", 36, 89],
+[1508, 935, "beautiful", 252, 89],
+[1425, 976, "beauty", 252, 89],
+[879, 634, "black and white", 180, 85],
+[1208, 969, "blue", 324, 86],
+[1109, 648, "booty", 144, 89],
+[431, 647, "bottom", 108, 83],
+[1556, 736, "breakfast", 72, 90],
+[670, 480, "butt", 216, 80],
+[1395, 652, "cafe", 72, 90],
+[1468, 535, "cakes", 72, 90],
+[362, 1392, "cars", 0, 87],
+[1271, 998, "cat", 252, 89],
+[519, 1041, "clothes", 0, 87],
+[583, 1062, "clothing", 0, 87],
+[1306, 569, "coffee", 72, 90],
+[720, 734, "color", 180, 85],
+[500, 555, "colors", 108, 83],
+[347, 596, "comic", 108, 83],
+[543, 321, "crystals", 216, 80],
+[1229, 870, "cute", 324, 86],
+[0, 931, "dc", 360, 90],
+[444, 1237, "decor", 0, 87],
+[1134, 1025, "design", 324, 86],
+[1108, 308, "digital art", 144, 89],
+[950, 955, "doodle", 324, 86],
+[588, 936, "dope", 180, 85],
+[1072, 969, "drawing", 324, 86],
+[980, 753, "drugs", 324, 86],
+[681, 1522, "explore", 36, 89],
+[1074, 448, "f4f", 144, 89],
+[400, 1003, "fan art", 360, 90],
+[791, 1074, "fanart", 0, 87],
+[568, 1124, "fashion", 0, 87],
+[1310, 1131, "fitness", 252, 89],
+[1122, 447, "follow back", 144, 89],
+[999, 846, "following back", 324, 86],
+[1136, 558, "food", 144, 89],
+[719, 1397, "foodgasm", 36, 89],
+[1219, 529, "foodporn", 144, 89],
+[818, 1348, "fun", 36, 89],
+[1067, 1364, "funny", 36, 89],
+[1443, 1313, "gay", 252, 89],
+[1294, 340, "gif", 144, 89],
+[1304, 281, "gifs", 144, 89],
+[1383, 833, "graphic", 72, 90],
+[629, 837, "graphic design", 180, 85],
+[641, 776, "graphics", 180, 85],
+[1302, 1052, "green", 252, 89],
+[1016, 333, "happy", 144, 89],
+[1490, 827, "health", 72, 90],
+[819, 705, "hippie", 180, 85],
+[1197, 1187, "hot", 288, 91],
+[1305, 773, "illustration", 72, 90],
+[142, 1108, "ink", 360, 90],
+[737, 286, "inspiration", 216, 80],
+[553, 1236, "interior design", 0, 87],
+[945, 207, "jdm", 216, 80],
+[914, 1097, "landscape", 288, 91],
+[184, 485, "lensblr", 108, 83],
+[801, 1555, "life", 36, 89],
+[353, 865, "lit", 360, 90],
+[1163, 1533, "lmao", 36, 89],
+[1190, 1576, "lmfao", 36, 89],
+[1002, 1115, "lol", 288, 91],
+[1417, 912, "makeup", 252, 89],
+[1398, 1071, "manga", 252, 89],
+[1354, 948, "me", 252, 89],
+[1096, 1457, "meme", 36, 89],
+[662, 1051, "mens fashion", 0, 87],
+[851, 941, "mens style", 180, 85],
+[654, 1103, "menswear", 0, 87],
+[297, 300, "mine", 108, 83],
+[717, 807, "minimal", 180, 85],
+[623, 229, "motivation", 216, 80],
+[668, 610, "music", 180, 85],
+[1477, 1019, "my art", 252, 89],
+[81, 777, "my gifs", 360, 90],
+[774, 984, "naked", 180, 85],
+[828, 1436, "nature", 36, 89],
+[776, 841, "nsfw", 180, 85],
+[1018, 1216, "nude", 288, 91],
+[904, 1384, "ocean", 36, 89],
+[183, 563, "original photographers", 108, 83],
+[1303, 1340, "painting", 288, 91],
+[1216, 1048, "personal", 324, 86],
+[486, 1347, "photographers on tumblr", 0, 87],
+[1260, 932, "pink", 324, 86],
+[1395, 412, "poem", 72, 90],
+[456, 826, "poetry", 180, 85],
+[1120, 1250, "pokemon", 288, 91],
+[1313, 1243, "porn", 252, 89],
+[1121, 1166, "portrait", 288, 91],
+[677, 883, "poster", 180, 85],
+[928, 1199, "print", 288, 91],
+[273, 1059, "pussy", 360, 90],
+[414, 746, "quote", 108, 83],
+[476, 737, "quotes", 180, 85],
+[737, 620, "rap", 180, 85],
+[542, 641, "rapper", 180, 85],
+[1486, 1107, "reblog", 252, 89],
+[1615, 619, "runway", 72, 90],
+[947, 1460, "sea", 36, 89],
+[597, 555, "sex", 180, 85],
+[1145, 920, "sexy", 324, 86],
+[646, 696, "shadowhunters", 180, 85],
+[561, 747, "sketch", 180, 85],
+[522, 928, "smoke", 180, 85],
+[368, 1137, "smoke weed", 0, 87],
+[405, 356, "spilled ink", 108, 83],
+[867, 748, "spiritual", 180, 85],
+[1190, 785, "star wars", 324, 86],
+[1422, 1189, "street fashion", 252, 89],
+[645, 1326, "street style", 0, 87],
+[508, 1105, "style", 0, 87],
+[1574, 1128, "submission", 252, 89],
+[880, 1514, "summer", 36, 89],
+[299, 516, "superman", 108, 83],
+[1071, 731, "tasty", 324, 86],
+[331, 759, "tattoo", 108, 83],
+[277, 794, "tattoos", 360, 90],
+[790, 132, "teen", 216, 80],
+[172, 926, "travel", 360, 90],
+[1486, 681, "vegan", 72, 90],
+[135, 702, "video games", 108, 83],
+[283, 951, "watercolor", 360, 90],
+[534, 874, "weed", 180, 85],
+[455, 475, "writing", 108, 83],
+[667, 322, "yoga", 216, 80],
+[1103, 818, "yummy", 324, 86],
+[580, 381, "zen", 216, 80],
+
+     ];
+                  function pastelColors(hue, lit){
+            var pastel = 'hsl(' + hue + ', 100%, '+ lit +'%)';
+            return pastel
+        }
+            //Create SVG element
+            var svg = d3.select("body")
+                    .append("svg")
+                    .attr("width", w)
+                    .attr("height", h);
+
+            svg.selectAll("path")
+                .data(d3.geom.voronoi(dataset))
+                .enter().append("svg:path")
+                .attr("d", function(d) {if(d && d.join) { return "M" + d.join("L") + "Z"; }})
+                .attr("stroke", "gray")
+                .attr("stroke-width", .5)
+                .attr("fill", function(d) { 
+                    console.log(d);
+                    if (d == undefined){
+                        return 360;
+                    }
+                    return pastelColors(d.point[3], d.point[4])});
+
+            svg.selectAll("circle")
+                    .data(dataset)
+                    .enter()
+                    .append("circle")
+                    .attr("cx", function(d) {
+                        return d[0];
+                    })
+                    .attr("cy", function(d) {
+                        return d[1];
+                    })
+                    .attr("r", function(d) {
+                        return 1;
+                    })
+                    .attr("fill", "gray");
+
+            svg.selectAll("text")
+                .data(dataset)
+                .enter()
+                .append("text")
+                .text(function(d) {
+                    return d[2];
+                })
+                .attr("x", function(d) {
+                    return d[0] + 2;
+                })
+                .attr("y", function(d) {
+                    return d[1] + 2;
+                })
+                .attr("font-size", "5px")
+                .attr("fill", "black")
+                .attr("font-family", "sans-serif");   
+        </script>
+        </body>
+    </html>
+    
