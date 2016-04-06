@@ -17,17 +17,16 @@ def getTop():
 
         <body>
         <script type="text/javascript">
-            var w = 2000;
-            var h = 2000;
+            var w = 3000;
+            var h = 3000;
 
             var dataset = [
     """
 def getBottom():
     return """
      ];
-               function pastelColors(){
-            var hue = Math.floor(Math.random() * 360);
-            var pastel = 'hsl(' + hue + ', 100%, 87.5%)';
+                  function pastelColors(hue, lit){
+            var pastel = 'hsl(' + hue + ', 100%, '+ lit +'%)';
             return pastel
         }
             //Create SVG element
@@ -42,7 +41,12 @@ def getBottom():
                 .attr("d", function(d) {if(d && d.join) { return "M" + d.join("L") + "Z"; }})
                 .attr("stroke", "gray")
                 .attr("stroke-width", .5)
-                .attr("fill", pastelColors);
+                .attr("fill", function(d) { 
+                    console.log(d);
+                    if (d == undefined){
+                        return 360;
+                    }
+                    return pastelColors(d.point[3], d.point[4])});
 
             svg.selectAll("circle")
                     .data(dataset)

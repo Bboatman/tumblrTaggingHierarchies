@@ -66,7 +66,7 @@ def collectUserTags(iterations, allUsers = {}, usernames = []):
 
 		# If a user gets updated, print the update
 		if count > 0:
-			print allUsers[usr]
+			print(allUsers[usr])
 	return allUsers 
 
 

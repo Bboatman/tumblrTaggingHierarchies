@@ -48,39 +48,6 @@ class User(object):
 	def getPosts(self):
 		return self.posts
 
-
-class TagVector(object):
-	""" 
-	A vector object to hold information about a specific 
-	tag for cosine similarity processing and clustering
-	"""
-	def __init__(self, name, counter = collections.Counter()):
-		self.tagName = name
-		self.tagCount = counter
-
-
-	def __str__(self):
-		return self.tagName
-
-
-	def updateVector(self, tagCollection):
-		""" 
-		Update a vector with a new collection of data 
-		"""
-		self.tagCount += tagCollection
-
-
-	def getName(self):
-		return self.tagName
-
-
-	def setName(self, name):
-		self.tagName = name
-	
-
-	def getTagCounter(self):
-		return self.tagCount
-
 class TagCluster(object):
 	""" 
 	Cluster for hierarchical ranking of tag vectors
@@ -103,11 +70,9 @@ class TagCluster(object):
 		self.memberList = []
 		self.rawVector = collections.Counter()
 
-
-	def addMember(self, tagVector):
-		self.memberList.append(tagVector.getName())
-		self.rawVector += tagVector.getTagCounter()
-		
+	def addMember(self, name, tagVector):
+		self.memberList.append(name)
+		self.rawVector += collections.Counter(tagVector)
 
 	def getMembers(self):
 		return self.memberList

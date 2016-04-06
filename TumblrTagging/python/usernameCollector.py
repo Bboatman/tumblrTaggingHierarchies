@@ -57,10 +57,16 @@ def makeBlogList(urlList, offset = 0):
 	nameFile.close()
 	print "Start length", len(usernames)
 	sumAdded = 0
+	count = 1
+	percent = len(usernames) / 100
 	for url in urlList:
+		if count % percent == 0:
+			print count // percent, "percent done"
+		count += 1
 		try: 				
 			rawPosts = client.posts(url, offset=offset)
 			allPosts = rawPosts['posts']
+			'''
 			for post in allPosts:
 				if 'post_author' in post.keys():  # This one gets the original author if the poster reblogged the post
 					name = item['post_author'].encode('utf-8')
@@ -71,6 +77,7 @@ def makeBlogList(urlList, offset = 0):
 				if name not in usernames and offset == 0: # If a user no longer exists remove them from the list
 					usernames.append(name)
 					sumAdded += 1
+			'''
 		except: # This catches bad entries into our user table, deactivated accounts usually, and removes them from the file
 			if url in usernames and offset == 0:
 				usernames.remove(url)
@@ -92,13 +99,22 @@ def cleanList():
 	userfile = open(USRFILE, 'r')
 	usernames = pickle.load(userfile)
 	userfile = userfile.close()
-	#makeBlogList(usernames) 
-	sampleFile = open('java.txt', 'w')
-	sampleFile.write("[")
-	for item in usernames:
-		sampleFile.write(item + ",")
-	sampleFile.write("]")
-	sampleFile.close()
+	makeBlogList(usernames)
+
+def grabJavaUsernames():
+	javaList = open("./java.txt")
+	userfile = open(USRFILE, 'r')
+	usernames = pickle.load(userfile)
+	print len(usernames)
+	for line in javaList:
+		if line[:-1] not in usernames:
+			usernames.append(line[:-1])
+		else:
+			print "Already seen"
+	print len(usernames)
+	nameFile = open(USRFILE, 'w')
+	pickle.dump(usernames, nameFile)
+
 
 def main():
 	runtime = 300
@@ -117,5 +133,6 @@ def main():
 
 
 client = accessAPI(APIKEYS)
+grabJavaUsernames()
 #main()
 cleanList();

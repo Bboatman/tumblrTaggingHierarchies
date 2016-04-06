@@ -4,65 +4,66 @@ Date: December 2015
 Clustering visualiser for tumblr tag data
 '''
 
+"..\..\..\..\..\IdeaProjects\TumblrHierachyGenerator\src\\tagJSON.txt"
 import random 
 import math
-import pickle
+import json
 import collections as c
 import tumblruser, htmlwrite
 import numpy as np
 from scipy import spatial
 from sklearn.manifold import TSNE
+from sklearn import cluster
 import matplotlib.pyplot as plt
+from collections import Counter
+from reScale import *
 
-TAGFILE = "../data/tagfile.txt"
+#TAGFILE = "../data/tagfile.txt"
 RAWDATA = "../data/rawData.txt"
-HTMLFILE = "../data/display.html"
+HTMLFILE = "./new.html"
+JAVATAGLOC = "../../../../IdeaProjects/TumblrHierachyGenerator/src/unicodeJSON.txt"
 NUM_RESORTS = 5
-NUM_CLUSTERS = 600
 STEP_SIZE = 3
-POST_THRESH = 75
-
+POST_THRESH = 3
+def openTagFile():
+    '''
+    Open the JSON doc made by the java part of the code
+    '''
+    with open(JAVATAGLOC, encoding="ISO-8859-1") as data_file:    
+        data = json.load(data_file)
+    return data
 
 def shrinkDict(postThreshold = POST_THRESH):
     '''
     Throw away all blogs with less than a certain number of tags and/or posts attached to them. 
     This helps weed down the data so that we have less to attempt to run.
     Param: postThreshold - the minimum number of posts a user must have to be considered viable
-    Return: userDict - dictionary of tumblruser objects counting frequency of tag occurance
+    Return: tagDict - dictionary of tagVector dictionaries counting frequency of tag occurance
     '''
-    tagfile = open(TAGFILE, 'r')
-    userDict = pickle.load(tagfile)
-    tagfile.close()
-    userDict = {usrId: usrObj for (usrId, usrObj) in userDict.items() if len(usrObj.posts) >= POST_THRESH}
-    return userDict
+    tagList = openTagFile()
+    badTags = []
+    tagDict = {}
+    for tagVector in tagList:
+        try:
+            if len(tagVector["posts"]) > POST_THRESH:
+                tagDict[tagVector["tagName"]] = tagVector["coOccurrenceCounter"]
+        except:
+            badTags.append(tagVector["tagName"])
+    print(len(tagDict.keys()), "Valid Tags")
+    return tagDict
 
+TAG_DICT = shrinkDict()
 
-def generateTagVectors(userDict = shrinkDict()):
-    ''' 
-    Generate sparse vectors of tag co-occurance for cosine similarity analysis
-    Param: userDict - a dictionary of tumblruser objects
-    Return: vectorDict - a dictionary of tag vectors with tags as keys and counters as values
-    '''
-    vectorDict = {}
-    for user in userDict:
-        usrObj = userDict[user]
-        for tag in usrObj.tagDict:
-            if tag not in vectorDict:
-                vectorDict[tag] = tumblruser.TagVector(tag)
-            vectorDict[tag].updateVector(usrObj.tagDict[tag])
-    return vectorDict
-
-
-def randomCluster(numClusters):
+def randomCluster(numClusters, tagDict):
     '''
     Set up for recursive clustering, randomly distributing urls across n clusters
     Param: numClusters - the number of clusters to randomly distribute tag vectors across
     Return: clusteredUrls - a list of size numClusters of TagCluster objects
     '''
-    clusterList = [tumblruser.TagCluster() for x in xrange(numClusters)]
-    for entry in TAG_DICT:
+    clusterList = [tumblruser.TagCluster() for x in range(numClusters)]
+    for entry in tagDict:
         loc = random.randint(0, numClusters - 1)
-        clusterList[loc].addMember(TAG_DICT[entry])
+        clusterList[loc].addMember(entry, tagDict[entry])
     for cluster in clusterList:
         cluster.setCentroid()
     return clusterList
@@ -98,10 +99,10 @@ def clusterMatch(clusterList, vector):
     cosineSim = []
     index = 0;
     for cluster in clusterList:
-        similarity = calculateCosineDistance(cluster.getCentroid(), vector.getTagCounter())
+        similarity = calculateCosineDistance(cluster.getCentroid(), Counter(vector))
         cosineSim.append((index, similarity))
         index += 1
-    return sorted(cosineSim, key=lambda tup: tup[1], reverse=False) 
+    return cosineSim
 
 
 def reCluster(clusterList):
@@ -115,93 +116,22 @@ def reCluster(clusterList):
     avg = 0
     for cluster in clusterList:
         cluster.wipeMembers()
-    tagList = TAG_DICT.values()
+    tagList = TAG_DICT.keys()
 
     for tag in tagList:
-        matchTuple = clusterMatch(clusterList, tag)[0]
-        bestIndex = matchTuple[0]
-        avg += matchTuple[1]
+        vector = TAG_DICT[tag]
+        matchTuple = sorted(clusterMatch(clusterList, vector), key=lambda tup: tup[1], reverse=False)[0]
+        if matchTuple[0] > 0:
+            bestIndex = matchTuple[0]
+            avg += matchTuple[1]
+            clusterList[bestIndex].addMember(tag, vector)
         iterCount +=1
-        clusterList[bestIndex].addMember(tag)
-        if iterCount % 500 == 0:
-            print matchTuple[1], tag.getName(), matchTuple[0]
+        # if iterCount % 500 == 0:
+        #     print(matchTuple[1], tag, matchTuple[0])
     avg = avg/iterCount
     for cluster in clusterList:
         cluster.setCentroid() 
     return clusterList, avg
-
-'''
-###### All of this is recycled code from an old project   ######
-###### It still needs updated to work within this project ######
-###### Hoping to get to that next semester                ######
-
-def bestFit(centroid, cluster, showNumber):    
-    cosineSim = []
-    index = 0;
-    for tag in cluster:
-        tags = url[1]
-        similarity = calculateCosineDistance(centroid, tags)
-        cosineSim.append((url[0], similarity))
-        index += 1
-    cosineSim = sorted(cosineSim, key=lambda tup: tup[1], reverse=True) 
-    if showNumber > len(cluster):
-        return cosineSim
-    else:
-        return cosineSim[:showNumber - 1]
-
-
-def printBestItems(clusterList):
-    index = 0
-    
-    for cluster in sortedClusters:
-        index += 1
-        if len(cluster) > 0:
-            print "Cluster", index
-            bestFitUrls = bestFit(centroidList[index], cluster, 5)
-            for url in bestFitUrls:
-                print url
-
-
-def mergeClusters(clusterList):
-    newClusters = []
-    for cluster in clusterList: #for all remaining clusters in list
-        holderList = []
-        for x in range(0, STEP_SIZE - 1): # number of clusters merged together - 1 for final merge of comparison cluster
-            cosineSim = []
-            centroidList = calculateCentroids(clusterList)
-            # get all similarities
-            for i in range(0, len(centroidList)): 
-                cosineSim.append((i,calculateCosineDistance(centroidList[i],centroidList[0])))
-                cosineSim = sorted(cosineSim, key=lambda tup: tup[1], reverse=True)
-            holderList.append(clusterList[cosineSim[0][0]])
-            clusterList.remove(clusterList[cosineSim[0][0]])
-        holderList.append(clusterList[0])
-        clusterList.remove(clusterList[0])
-        newClusters.append(holderList[0])
-    return newClusters
-     
-
-def mergingTest():
-    numClusters = TOTAL_TAGS
-    clusters = evenClusters(numClusters)
-    centroidList = calculateCentroids(clusters)
-    index = 0
-    while numClusters > NUM_CLUSTERS:
-        if index > 0: 
-            numClusters /= STEP_SIZE
-            clusters = mergeClusters(clusters)
-            centroidList = calculateCentroids(clusters)
-            numClusters = len(clusters)
-        index = 0
-        while index < NUM_RESORTS:
-            clusters, avg = reCluster(centroidList, numClusters)
-            centroidList = calculateCentroids(clusters)
-            print "Sort number", index, "Average correlation", avg
-            index += 1
-        print numClusters
-    printClusterUrls(clusters)
-    return clusters, centroidList
-'''
 
 
 def makeSimVectors():
@@ -210,37 +140,28 @@ def makeSimVectors():
     Return: visualiserDict - dictionary of dense tag vectors
     '''
     count = 0
-    for i in range(NUM_RESORTS):
-        clusterList = randomCluster(NUM_CLUSTERS)
+    numClusters = len(TAG_DICT) // 3
+    numResorts = numClusters // 20 if numClusters // 20 < 20 else 20
+    print(numClusters, "Clusters")
+    print("Resorting", str(numResorts), "Times")
+    clusterList = randomCluster(numClusters, TAG_DICT)
+    for i in range(numResorts):
         clusterList, avg = reCluster(clusterList)
-        print avg, i
+        print(avg, i)
     visualiserDict ={}
     for tag in TAG_DICT:
         vector = TAG_DICT[tag]
         cosineSim = clusterMatch(clusterList, vector)
-        similarityList = range(NUM_CLUSTERS)
-        for tupleVal in cosineSim:
-            index = tupleVal[0]
-            similarityList[index] = tupleVal[1]
-        visualiserDict[tag] = similarityList
+        indices, values = zip(*cosineSim) 
+        visualiserDict[tag] = values
         count += 1
-        if count % 500 == 0:
-            print tag
+        # if count % 500 == 0:
+        #     print(tag)
     return visualiserDict
 
-
-def scale(value, mult = 80, add = 500 + (300*random.random())):
-    '''
-    Scale compressed 2d points so that they fill the browser screen
-    '''
-    value = float(value)
-    return str(int(float(value)*mult + add))
-
-
-def generateHTML():
+def generateDataPoints(dFile):
     ''' 
-    Create the html file of compressed data points and graph that to 
-    voronoi tesselations based off of rebecca's javascript
+    Create the file of compressed data points
     '''
     simVector = makeSimVectors()
     tsne = TSNE(n_components=2, init='pca', random_state=0)
@@ -249,15 +170,21 @@ def generateHTML():
 
     np.savetxt(RAWDATA, fData, fmt="%.9f", delimiter=' ')
     raw = open(RAWDATA)
-    displayFile = open(HTMLFILE, "w")
-    displayFile.write(htmlwrite.getTop())
-    for i, line in enumerate(raw.readlines()):
-        x, y = line.split()
-        displayFile.write("[" + scale(x) + ", " + scale(y) + ", " + '\"' + labels[i] + '\"' + "],\n")
+    with open(dFile, 'w') as dataFile:
+        for i, line in enumerate(raw.readlines()):
+            x, y = line.split()
+            try:
+                writeStr = "[" + str(x) + ", " + str(y) + ", "+ '\"' + labels[i] + "\"],\n"
+                dataFile.write(writeStr)
+            except(UnicodeEncodeError):
+                print("Failed to write")
     raw.close()
-    displayFile.write(htmlwrite.getBottom())
-    displayFile.close()
 
+def generateHtml(dataFile, htmlFile):
+    generateDataPoints(dataFile)
+    indexList = readInData(dataFile)
+    visualCluster(indexList, htmlFile)
 
-TAG_DICT = generateTagVectors()
-generateHTML()
+rescaleNoRecluster('./data.txt', './new.html')
+#generateHtml("data.txt", "new.html")
+
