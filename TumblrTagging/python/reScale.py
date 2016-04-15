@@ -2,6 +2,11 @@ from sklearn import cluster
 import numpy as np
 import htmlwrite
 import random
+import math
+from sklearn.datasets import make_blobs
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_samples, silhouette_score
+
 
 IMGSIZE = 2000
 
@@ -38,17 +43,35 @@ def reSize(indexList):
 
 	x = [int(loc - subtract + 5) for loc in x]
 	y = [int(loc - subtract + 5) for loc in y]
+	numClusters = predictNumClusters(x,y)
 	pointList = zip(x,y)
 	itemList = zip(pointList,label)
 	print(max(x), max(y))
 	print("avg difference", avgDist)
-	return list(itemList), avgDist
+	print("num clusters", numClusters)
+	return list(itemList), avgDist, numClusters
+
+def predictNumClusters(x, y):
+	X = np.array(list(zip(x,y)))
+	range_n_clusters = range(5, len(x) // 3, 3)
+	bestFit = 0
+	numClusters = 0
+	for n_clusters in range_n_clusters:
+	    clusterer = KMeans(n_clusters=n_clusters, random_state=10)
+	    cluster_labels = clusterer.fit_predict(X)
+
+	    silhouette_avg = silhouette_score(X, cluster_labels)
+	    if silhouette_avg > bestFit:
+	    	print(silhouette_avg, "with k =", n_clusters)
+	    	numClusters = n_clusters
+	    	bestFit = silhouette_avg
+	    	if silhouette_avg >= .8:
+	    		return numClusters
+	return numClusters
 
 def visualCluster(indexList, htmlFile):
-    indexList, avgDist = reSize(indexList)
-    approxClusters = int(len(indexList) * avgDist)
-    print(approxClusters, "Clusters")
-    affinity = cluster.AgglomerativeClustering(n_clusters=300)
+    indexList, avgDist, numClusters = reSize(indexList)
+    affinity = cluster.AgglomerativeClustering(n_clusters = numClusters)
     points, labels = zip(*indexList)
     clusters = affinity.fit_predict(points)
     hues = [360/max(clusters) * x for x in clusters]

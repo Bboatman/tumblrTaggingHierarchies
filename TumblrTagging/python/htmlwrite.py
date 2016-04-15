@@ -17,8 +17,8 @@ def getTop():
 
         <body>
         <script type="text/javascript">
-            var w = 3000;
-            var h = 3000;
+            var w = 4000;
+            var h = 4000;
 
             var dataset = [
     """

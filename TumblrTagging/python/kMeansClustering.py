@@ -3,8 +3,6 @@ Author: Brooke Boatman
 Date: December 2015
 Clustering visualiser for tumblr tag data
 '''
-
-"..\..\..\..\..\IdeaProjects\TumblrHierachyGenerator\src\\tagJSON.txt"
 import random 
 import math
 import json
@@ -24,7 +22,7 @@ HTMLFILE = "./new.html"
 JAVATAGLOC = "../../../../IdeaProjects/TumblrHierachyGenerator/src/unicodeJSON.txt"
 NUM_RESORTS = 5
 STEP_SIZE = 3
-POST_THRESH = 3
+POST_THRESH = 50
 def openTagFile():
     '''
     Open the JSON doc made by the java part of the code
@@ -45,6 +43,8 @@ def shrinkDict(postThreshold = POST_THRESH):
     tagDict = {}
     for tagVector in tagList:
         try:
+            if len(tagVector["tagName"]) >= 15:
+                print(tagVector["tagName"], len(tagVector["posts"]))
             if len(tagVector["posts"]) > POST_THRESH:
                 tagDict[tagVector["tagName"]] = tagVector["coOccurrenceCounter"]
         except:
@@ -53,6 +53,9 @@ def shrinkDict(postThreshold = POST_THRESH):
     return tagDict
 
 TAG_DICT = shrinkDict()
+with open("holdFile.txt", "w") as h:
+    for val in TAG_DICT["cat"].items():
+        h.write(str(val) + "\n")
 
 def randomCluster(numClusters, tagDict):
     '''
@@ -66,7 +69,7 @@ def randomCluster(numClusters, tagDict):
         clusterList[loc].addMember(entry, tagDict[entry])
     for cluster in clusterList:
         cluster.setCentroid()
-    return clusterList
+    return clusterList 
 
 
 def calculateCosineDistance(centroid, tagVector):
@@ -155,13 +158,11 @@ def makeSimVectors():
         indices, values = zip(*cosineSim) 
         visualiserDict[tag] = values
         count += 1
-        # if count % 500 == 0:
-        #     print(tag)
     return visualiserDict
 
 def generateDataPoints(dFile):
     ''' 
-    Create the file of compressed data points
+    Create the .txt file of 2d points and their corresponding tags
     '''
     simVector = makeSimVectors()
     tsne = TSNE(n_components=2, init='pca', random_state=0)
@@ -181,10 +182,13 @@ def generateDataPoints(dFile):
     raw.close()
 
 def generateHtml(dataFile, htmlFile):
+    '''
+    Generate the html file for visualizaton
+    '''
     generateDataPoints(dataFile)
     indexList = readInData(dataFile)
     visualCluster(indexList, htmlFile)
 
-rescaleNoRecluster('./data.txt', './new.html')
-#generateHtml("data.txt", "new.html")
+#rescaleNoRecluster('./data.txt', './new.html')
+generateHtml("testData.txt", "new2.html")
 
