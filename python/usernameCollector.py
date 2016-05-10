@@ -11,24 +11,24 @@ import pickle
 import time
 
 USRFILE = '../data/usernames.txt'
-APIKEYS = '../data/data.txt'
+APIKEYS = '../data/apiKeys.txt'
 
 
 def getUrls():
-    ''' 
-    Crawl trending page for starter blogs because tumblr api isn't
-    written to produce random blogs because they suck (but we still love them anyways)
-    '''
-    basePage = "https://www.tumblr.com/explore/trending"
-    keyWord = "\"dashboard_url\""  # Looking for the urls in the html
-    handle = urllib.urlopen(basePage)
-    html = handle.read()
-    blogList = []
-    for word in html.split(","):  # Grab blogspecific url
-	    if word[:len(keyWord)] == keyWord:
-	        url = word.split("/")[-1][:-1]
-	        blogList.append(url)
-    return blogList
+	''' 
+	Crawl trending page for starter blogs because tumblr api isn't
+	written to produce random blogs because they suck (but we still love them anyways)
+	'''
+	basePage = "https://www.tumblr.com/explore/trending"
+	keyWord = "\"dashboard_url\""  # Looking for the urls in the html
+	handle = urllib.urlopen(basePage)
+	html = handle.read()
+	blogList = []
+	for word in html.split(","):  # Grab blogspecific url
+		if word[:len(keyWord)] == keyWord:
+			url = word.split("/")[-1][:-1]
+			blogList.append(url)
+	return blogList
 
 
 def accessAPI(filename):
@@ -38,9 +38,9 @@ def accessAPI(filename):
 	Param: filename - the .txt file that contains the api credentials
 	'''
 	info = open(filename, 'r')
-	key, secret, usr, password = info.read().split(",")
+	key, secret = info.read().split("\n")
 	info.close()
-	return pytumblr.TumblrRestClient(key, secret, usr, password)
+	return pytumblr.TumblrRestClient(key, secret)
 
 
 def makeBlogList(urlList, offset = 0):
@@ -66,7 +66,6 @@ def makeBlogList(urlList, offset = 0):
 		try: 				
 			rawPosts = client.posts(url, offset=offset)
 			allPosts = rawPosts['posts']
-			'''
 			for post in allPosts:
 				if 'post_author' in post.keys():  # This one gets the original author if the poster reblogged the post
 					name = item['post_author'].encode('utf-8')
@@ -77,8 +76,9 @@ def makeBlogList(urlList, offset = 0):
 				if name not in usernames and offset == 0: # If a user no longer exists remove them from the list
 					usernames.append(name)
 					sumAdded += 1
-			'''
-		except: # This catches bad entries into our user table, deactivated accounts usually, and removes them from the file
+		except: 
+		# This catches bad entries into our user table, deactivated 
+		# accounts usually, and removes them from the file
 			if url in usernames and offset == 0:
 				usernames.remove(url)
 				print "Removed user", url
@@ -102,6 +102,9 @@ def cleanList():
 	makeBlogList(usernames)
 
 def grabJavaUsernames():
+	'''
+	Read in a java scraped username list and save to a python pickled file
+	'''
 	javaList = open("./java.txt")
 	userfile = open(USRFILE, 'r')
 	usernames = pickle.load(userfile)
@@ -116,11 +119,15 @@ def grabJavaUsernames():
 	pickle.dump(usernames, nameFile)
 
 
-def main():
-	runtime = 300
+def grabPythonUsernames():
+	'''
+	Recursively crawl the Tumblr API in python for username scraping
+	'''
+	RUNTIME = 300
 	sampleRate = 10
 	now = time.time()
-	breaktime = now + runtime # Don't let it run for more than five minutes for sanity's sake
+	# Don't let it run for more than five minutes for sanity's sake
+	breaktime = now + RUNTIME 
 	added = 1
 	sampleTime = 20 + now
 	while time.time() < breaktime:
@@ -129,10 +136,15 @@ def main():
 			added = makeBlogList(getUrls())
 			sampleTime += sampleRate
 
-	#cleanList # If you're getting a lot of exception warnings uncomement this to throw out bad blogs
+	# If you're getting a lot of exception warnings uncomement this to throw out bad blogs
 
 
 client = accessAPI(APIKEYS)
-grabJavaUsernames()
-#main()
-cleanList();
+
+# Switched to Java which is faster in recursive calls
+# Using python until java is pushed
+# grabJavaUsernames()
+grabPythonUsernames()
+
+# If you're getting a lot of exception warnings uncomement this to throw out bad blogs
+# cleanList()

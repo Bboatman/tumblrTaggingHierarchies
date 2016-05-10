@@ -1,7 +1,8 @@
 ''' 
 Author: Brooke Boatman
 Date: December 2015
-Custom classes for simplifying and making more readable data manipulations
+Custom classes for tumblr users and tag cluster objects made for simplifying 
+and making more readable data manipulations in later learning stages
 '''
 
 import collections
@@ -50,7 +51,7 @@ class User(object):
 
 class TagCluster(object):
 	""" 
-	Cluster for hierarchical ranking of tag vectors
+	Cluster object for feature extraction of tag vectors
 	"""
 	def __init__(self):
 		self.memberList = []

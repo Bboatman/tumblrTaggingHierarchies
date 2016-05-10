@@ -36,7 +36,7 @@ def collectUserTags(iterations, allUsers = {}, usernames = []):
 	Param: iterations - the number of pages (each conatining 20 posts) to look through
 		   allUsers - the tumblruser object dictionary being updated
 		   usernames - the list of usernames to be processed
-    Return: allUsers - an updated tumblruser object dictionary
+	Return: allUsers - an updated tumblruser object dictionary
 	'''
 	printCount = 0
 	for usr in usernames:

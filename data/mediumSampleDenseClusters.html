@@ -1,19 +1,19 @@
 
-    <!DOCTYPE HTML>
+	<!DOCTYPE HTML>
 
-    <html>
-        <head>
-            <title>WikiBrainMap</title>
-            <script type="text/javascript" src="../d3/d3.v3.min.js"></script>
-        </head>
+	<html>
+		<head>
+			<title>WikiBrainMap</title>
+			<script type="text/javascript" src="../d3/d3.v3.min.js"></script>
+		</head>
 
-        <body>
-        <script type="text/javascript">
-            var w = 4000;
-            var h = 4000;
+		<body>
+		<script type="text/javascript">
+			var w = 4000;
+			var h = 4000;
 
-            var dataset = [
-    [848, 3024, "!!!", 237, 88],
+			var dataset = [
+	[848, 3024, "!!!", 237, 88],
 [661, 2822, "$$$ goes to non-profit organization Media Democracy Fund which helps to create grants that go towards equal Internet rights", 45, 83],
 [2926, 669, "$AAL", 160, 87],
 [2926, 733, "$AAPL", 264, 86],
@@ -7859,62 +7859,62 @@
 [811, 1718, "zucchini", 195, 88],
 [948, 534, "zuhair mura", 22, 80],
 
-     ];
-                  function pastelColors(hue, lit){
-            var pastel = 'hsl(' + hue + ', 100%, '+ lit +'%)';
-            return pastel
-        }
-            //Create SVG element
-            var svg = d3.select("body")
-                    .append("svg")
-                    .attr("width", w)
-                    .attr("height", h);
+	 ];
+				  function pastelColors(hue, lit){
+			var pastel = 'hsl(' + hue + ', 100%, '+ lit +'%)';
+			return pastel
+		}
+			//Create SVG element
+			var svg = d3.select("body")
+					.append("svg")
+					.attr("width", w)
+					.attr("height", h);
 
-            svg.selectAll("path")
-                .data(d3.geom.voronoi(dataset))
-                .enter().append("svg:path")
-                .attr("d", function(d) {if(d && d.join) { return "M" + d.join("L") + "Z"; }})
-                .attr("stroke", "gray")
-                .attr("stroke-width", .5)
-                .attr("fill", function(d) { 
-                    console.log(d);
-                    if (d == undefined){
-                        return 360;
-                    }
-                    return pastelColors(d.point[3], d.point[4])});
+			svg.selectAll("path")
+				.data(d3.geom.voronoi(dataset))
+				.enter().append("svg:path")
+				.attr("d", function(d) {if(d && d.join) { return "M" + d.join("L") + "Z"; }})
+				.attr("stroke", "gray")
+				.attr("stroke-width", .5)
+				.attr("fill", function(d) { 
+					console.log(d);
+					if (d == undefined){
+						return 360;
+					}
+					return pastelColors(d.point[3], d.point[4])});
 
-            svg.selectAll("circle")
-                    .data(dataset)
-                    .enter()
-                    .append("circle")
-                    .attr("cx", function(d) {
-                        return d[0];
-                    })
-                    .attr("cy", function(d) {
-                        return d[1];
-                    })
-                    .attr("r", function(d) {
-                        return 1;
-                    })
-                    .attr("fill", "gray");
+			svg.selectAll("circle")
+					.data(dataset)
+					.enter()
+					.append("circle")
+					.attr("cx", function(d) {
+						return d[0];
+					})
+					.attr("cy", function(d) {
+						return d[1];
+					})
+					.attr("r", function(d) {
+						return 1;
+					})
+					.attr("fill", "gray");
 
-            svg.selectAll("text")
-                .data(dataset)
-                .enter()
-                .append("text")
-                .text(function(d) {
-                    return d[2];
-                })
-                .attr("x", function(d) {
-                    return d[0] + 2;
-                })
-                .attr("y", function(d) {
-                    return d[1] + 2;
-                })
-                .attr("font-size", "5px")
-                .attr("fill", "black")
-                .attr("font-family", "sans-serif");   
-        </script>
-        </body>
-    </html>
-    
+			svg.selectAll("text")
+				.data(dataset)
+				.enter()
+				.append("text")
+				.text(function(d) {
+					return d[2];
+				})
+				.attr("x", function(d) {
+					return d[0] + 2;
+				})
+				.attr("y", function(d) {
+					return d[1] + 2;
+				})
+				.attr("font-size", "5px")
+				.attr("fill", "black")
+				.attr("font-family", "sans-serif");   
+		</script>
+		</body>
+	</html>
+	

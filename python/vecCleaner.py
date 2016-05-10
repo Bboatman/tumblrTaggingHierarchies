@@ -1,3 +1,9 @@
+''' 
+Author: Brooke Boatman
+Date: March 2016
+Python cleaner file to clear up Java scraping data dumps
+'''
+
 list = []
 with open("holdFile.txt", "r") as hold:
 	for line in hold.readlines():

@@ -1,19 +1,19 @@
 
-    <!DOCTYPE HTML>
+	<!DOCTYPE HTML>
 
-    <html>
-        <head>
-            <title>WikiBrainMap</title>
-            <script type="text/javascript" src="../d3/d3.v3.min.js"></script>
-        </head>
+	<html>
+		<head>
+			<title>WikiBrainMap</title>
+			<script type="text/javascript" src="../d3/d3.v3.min.js"></script>
+		</head>
 
-        <body>
-        <script type="text/javascript">
-            var w = 4000;
-            var h = 4000;
+		<body>
+		<script type="text/javascript">
+			var w = 4000;
+			var h = 4000;
 
-            var dataset = [
-    [728, 696, "*", 204, 90],
+			var dataset = [
+	[728, 696, "*", 204, 90],
 [1529, 577, "1k", 247, 92],
 [1416, 688, "2014", 26, 94],
 [1353, 858, "2015", 96, 82],
@@ -657,62 +657,62 @@
 [320, 369, "zodiac", 198, 82],
 [299, 342, "zodiac signs", 198, 82],
 
-     ];
-                  function pastelColors(hue, lit){
-            var pastel = 'hsl(' + hue + ', 100%, '+ lit +'%)';
-            return pastel
-        }
-            //Create SVG element
-            var svg = d3.select("body")
-                    .append("svg")
-                    .attr("width", w)
-                    .attr("height", h);
+	 ];
+				  function pastelColors(hue, lit){
+			var pastel = 'hsl(' + hue + ', 100%, '+ lit +'%)';
+			return pastel
+		}
+			//Create SVG element
+			var svg = d3.select("body")
+					.append("svg")
+					.attr("width", w)
+					.attr("height", h);
 
-            svg.selectAll("path")
-                .data(d3.geom.voronoi(dataset))
-                .enter().append("svg:path")
-                .attr("d", function(d) {if(d && d.join) { return "M" + d.join("L") + "Z"; }})
-                .attr("stroke", "gray")
-                .attr("stroke-width", .5)
-                .attr("fill", function(d) { 
-                    console.log(d);
-                    if (d == undefined){
-                        return 360;
-                    }
-                    return pastelColors(d.point[3], d.point[4])});
+			svg.selectAll("path")
+				.data(d3.geom.voronoi(dataset))
+				.enter().append("svg:path")
+				.attr("d", function(d) {if(d && d.join) { return "M" + d.join("L") + "Z"; }})
+				.attr("stroke", "gray")
+				.attr("stroke-width", .5)
+				.attr("fill", function(d) { 
+					console.log(d);
+					if (d == undefined){
+						return 360;
+					}
+					return pastelColors(d.point[3], d.point[4])});
 
-            svg.selectAll("circle")
-                    .data(dataset)
-                    .enter()
-                    .append("circle")
-                    .attr("cx", function(d) {
-                        return d[0];
-                    })
-                    .attr("cy", function(d) {
-                        return d[1];
-                    })
-                    .attr("r", function(d) {
-                        return 1;
-                    })
-                    .attr("fill", "gray");
+			svg.selectAll("circle")
+					.data(dataset)
+					.enter()
+					.append("circle")
+					.attr("cx", function(d) {
+						return d[0];
+					})
+					.attr("cy", function(d) {
+						return d[1];
+					})
+					.attr("r", function(d) {
+						return 1;
+					})
+					.attr("fill", "gray");
 
-            svg.selectAll("text")
-                .data(dataset)
-                .enter()
-                .append("text")
-                .text(function(d) {
-                    return d[2];
-                })
-                .attr("x", function(d) {
-                    return d[0] + 2;
-                })
-                .attr("y", function(d) {
-                    return d[1] + 2;
-                })
-                .attr("font-size", "5px")
-                .attr("fill", "black")
-                .attr("font-family", "sans-serif");   
-        </script>
-        </body>
-    </html>
-    
+			svg.selectAll("text")
+				.data(dataset)
+				.enter()
+				.append("text")
+				.text(function(d) {
+					return d[2];
+				})
+				.attr("x", function(d) {
+					return d[0] + 2;
+				})
+				.attr("y", function(d) {
+					return d[1] + 2;
+				})
+				.attr("font-size", "5px")
+				.attr("fill", "black")
+				.attr("font-family", "sans-serif");   
+		</script>
+		</body>
+	</html>
+	
